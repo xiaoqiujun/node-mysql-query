@@ -1,15 +1,5 @@
-import { IObject } from '../typings'
-import {
-	toKeys,
-	toValues,
-	isStr,
-	isArray,
-	typeOf,
-	isObj,
-	isPrimitive,
-	toUpperCase,
-	isDate,
-} from '../utils'
+import { IBuildResult, IObject } from '../typings'
+import { toKeys, toValues, isStr, isArray, typeOf, isObj, isPrimitive, toUpperCase, isDate } from '../utils'
 export default class Builder {
 	private sql: string = ''
 	protected resultCode: string = ''
@@ -33,6 +23,32 @@ export default class Builder {
 				if (!this.expMap.includes(v)) this.expMap.push(v)
 			})
 		})
+	}
+	protected buildQuery($options: any): IBuildResult {
+		let where: IBuildResult = this.buildWhere($options['where'], $options['keyword'])
+		let table: string = this.buildFrom($options['table'], $options['alias'])
+		let field: string = this.buildField($options['field'])
+		let join: string = this.buildJoin($options['join'], $options['alias'])
+		let group: string = this.buildGroup($options['group'])
+		let order: string = this.buildOrder($options['group'])
+		let limit: string = this.buildLimit($options['limit'])
+		let distinct: string = $options['distinct'] === true ? 'DISTINCT' : ''
+		const sql: string[] = [
+			`SELECT`,
+			`${distinct}`,
+			`${field}`,
+			`FROM`,
+			`${table}`,
+			`${join}`,
+			`${where['sql']}`,
+			`${order}`,
+			`${group}`,
+			`${limit}`,
+		].filter((item) => item !== '')
+		return {
+			sql: sql.join(' '),
+			params: where['params'],
+		}
 	}
 	protected build($options: any) {
 		console.log($options)
@@ -83,14 +99,9 @@ export default class Builder {
 	 * @return {*}  {(boolean | string)}
 	 * @memberof BuildSQL
 	 */
-	private filterSqlSyntax(
-		str: string,
-		replace: string | undefined = undefined
-	): boolean | string {
+	private filterSqlSyntax(str: string, replace: string | undefined = undefined): boolean | string {
 		const reg: RegExp = /and|exec|execute|insert|select|delete|update|count|drop|chr|mid|master|truncate|char|declare|sitename|net user|xp_cmdshell|or|like|and|exec|execute|insert|create|drop|table|from|grant|use|group_concat|column_name|information_schema.columns|table_schema|union|where|select|delete|update|order|by|count|chr|mid|master|truncate|char|declare/gi
-		return replace === undefined || replace === null
-			? reg.test(str)
-			: str.replace(reg, replace)
+		return replace === undefined || replace === null ? reg.test(str) : str.replace(reg, replace)
 	}
 	/**
 	 * @description 特殊字符过滤
@@ -103,17 +114,12 @@ export default class Builder {
 	 */
 	private filterChar(str: string, replace?: string): boolean | string {
 		const reg: RegExp = /[~'\-`"？《》“”‘’；;！#￥……&*（）\{\}——+：\{\}【】!\[\]<>@#$%^&*()-+=:\s\|]/gi
-		return replace === undefined || replace === null
-			? reg.test(str)
-			: str.replace(reg, replace)
+		return replace === undefined || replace === null ? reg.test(str) : str.replace(reg, replace)
 	}
 	/**
 	 * 解析查询语句
 	 */
-	private buildWhere(
-		whereOption: Array<any> = [],
-		query: string[] = []
-	): IObject {
+	private buildWhere(whereOption: Array<any> = [], query: string[] = []): IBuildResult {
 		console.log('++', whereOption, query)
 		const sqlMap: string[] = ['WHERE']
 		const data: any[] = [] //参数化
@@ -140,16 +146,12 @@ export default class Builder {
 					} else {
 						sqlMap.push(`${key}`, operatorOption[i], '?')
 					}
-					data.push(
-						conditionOption[i] !== '' ? conditionOption[i] : "''"
-					)
+					data.push(conditionOption[i] !== '' ? conditionOption[i] : "''")
 
-					if (i === operatorLength - 1 && operatorLength >= 2)
-						sqlMap.push(')')
+					if (i === operatorLength - 1 && operatorLength >= 2) sqlMap.push(')')
 
 					if (keywordOption[i]) sqlMap.push(keywordOption[i])
-					else if (length >= 2 && i + 1 < operatorLength)
-						sqlMap.push('AND') //多个条件
+					else if (length >= 2 && i + 1 < operatorLength) sqlMap.push('AND') //多个条件
 					i++
 				}
 				len++
@@ -162,10 +164,7 @@ export default class Builder {
 				}
 			}
 		})
-		if (
-			sqlMap.lastIndexOf('AND') === sqlMap.length - 1 ||
-			sqlMap.lastIndexOf('OR') === sqlMap.length - 1
-		) {
+		if (sqlMap.lastIndexOf('AND') === sqlMap.length - 1 || sqlMap.lastIndexOf('OR') === sqlMap.length - 1) {
 			sqlMap.splice(sqlMap.length - 1, 1)
 		}
 		return {
@@ -214,9 +213,7 @@ export default class Builder {
 			let name: string = item
 			let condition: string = $config[item][0]
 			let joinType: string = $config[item][1]
-			let filter: string[] = alias.filter((key) =>
-				table.includes($alias[key])
-			)
+			let filter: string[] = alias.filter((key) => table.includes($alias[key]))
 			name = `${item} ${filter[0]}`
 			join += `${joinType} JOIN ${name} ON ${condition} `
 		})
@@ -232,8 +229,7 @@ export default class Builder {
 			let value: string[] = keys.filter((key) => $alias[key] === table)
 			console.log(value)
 			if (value[0]) {
-				if (!from.includes(`${table} ${value[0]}`))
-					from.push(`${table} ${value[0]}`)
+				if (!from.includes(`${table} ${value[0]}`)) from.push(`${table} ${value[0]}`)
 			}
 		})
 		return from.join(',')
@@ -308,11 +304,51 @@ export default class Builder {
 					data.push(item[key])
 				}
 			})
-			let insert: string = `INSERT INTO ${$table} (${keys.join(
-				','
-			)}) VALUES (${data.join(',')})`
+			let insert: string = `INSERT INTO ${$table} (${keys.join(',')}) VALUES (${data.join(',')})`
 			insertMap.push(insert)
 		})
 		return insertMap.join(';')
+	}
+
+	/**
+	 * 解析更新数据
+	 */
+	protected buildUpdate(
+		$update: IObject,
+		$where: Array<any> = [],
+		$query: string[] = [],
+		$table: string | string[]
+	): string {
+		const where: IObject = this.buildWhere($where, $query)
+		if (!where['sql']) return ''
+		const keys: string[] = toKeys($update)
+		if (isArray($table)) {
+			$table = $table[0]
+		}
+		let sql: string[] = ['UPDATE', $table as string, 'SET']
+		let update: string[] = []
+		keys.forEach((key) => {
+			if (isStr($update[key]) || isDate($update[key])) {
+				update.push(`${key}='${$update[key]}'`)
+			} else {
+				update.push(`${key}=${$update[key]}`)
+			}
+		})
+		sql.push(update.join(','), where['sql'])
+		return sql.join(' ')
+	}
+	/**
+	 * 解析删除
+	 */
+	protected buildDelete($where: Array<any> = [], $query: string[] = [], $table: string | string[]): string {
+		const where: IObject = this.buildWhere($where, $query)
+		if (!where['sql']) return ''
+		if (isArray($table)) {
+			$table = $table[0]
+		}
+		let sql: string[] = ['DELETE', 'FROM', $table as string]
+
+		sql.push(where['sql'])
+		return sql.join(' ')
 	}
 }

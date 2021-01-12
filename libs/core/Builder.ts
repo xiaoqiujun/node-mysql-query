@@ -2,25 +2,27 @@ import { IBuildResult, IObject } from '../typings'
 import { toKeys, toValues, isStr, isArray, typeOf, isObj, isPrimitive, toUpperCase, isDate } from '../utils'
 export default class Builder {
 	private sql: string = ''
-	protected resultCode: string = ''
-	protected expMap: string[] = []
+	protected _resultCode: string = ''
+	protected _expMap: string[] = []
+	
 	constructor() {
-		console.log('cece')
 		;[
-			'EQ,=,eq',
-			'NEQ,<>,neq',
-			'GT,>,gt',
-			'LT,<,lt',
-			'ELT,<=,elt',
-			'EGT,>=,egt',
-			'LIKE,like',
-			'BETWEEN,between',
-			'IN,in',
-			'NULL,null',
+			'=,eq',
+			'<>,neq',
+			'>,gt',
+			'<,lt',
+			'<=,elt',
+			'>=,egt',
+			'like',
+			'between',
+			'in',
+			'not in',
+			'null',
+			'not null'
 		].forEach((key) => {
 			let split = (key as string).split(',')
 			;(split || []).forEach((v) => {
-				if (!this.expMap.includes(v)) this.expMap.push(v)
+				if (!this._expMap.includes(v)) this._expMap.push(v)
 			})
 		})
 	}

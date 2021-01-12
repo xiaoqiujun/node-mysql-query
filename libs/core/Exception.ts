@@ -1,7 +1,7 @@
 const ExceptionKey: string = '@xqj/mysql'
 export default class Exception {
-	protected $message: string = ''
+	protected _message: string = ''
 	constructor(msg: string) {
-		this.$message = `[${ExceptionKey}]:${msg}`
+		this._message = `[${ExceptionKey}]:${msg}`
 	}
 }

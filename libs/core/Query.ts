@@ -17,17 +17,17 @@ export default class Query extends Builder {
 	// // 数据库Connection对象实例
 	private static $connection: Db
 	// 当前数据表名称（含前缀）
-	private $table: string | Array<string> = ''
+	private _table: string | Array<string> = ''
 	// 当前数据表名称（不含前缀）
-	private $name: string | Array<string> = ''
+	private _name: string | Array<string> = ''
 	// 当前数据表前缀
-	private $prefix: string = ''
+	private _prefix: string = ''
 	// 查询参数
-	private $options: any = {}
+	private _options: any = {}
 	constructor(config: IDataBase) {
 		super()
 		console.log('测试执行')
-		this.$prefix = config.prefix || ''
+		this._prefix = config.prefix || ''
 		Query.$connection = Db.connect(config)
 	}
 	/**
@@ -35,30 +35,30 @@ export default class Query extends Builder {
 	 * @param names 数据表名称  不含前缀   ("table1") (["table1 a", "table2 b"])
 	 */
 	public name(names: string | Array<string>): Query {
-		this.$options = {} //重置
-		let table: string[] = this.$options['table'] || []
-		let alias: IObject = this.$options['alias'] || {}
-		this.$name = names
+		this._options = {} //重置
+		let table: string[] = this._options['table'] || []
+		let alias: IObject = this._options['alias'] || {}
+		this._name = names
 		if (isStr(names)) {
-			let _name: string = `${this.$prefix}${names}`
+			let _name: string = `${this._prefix}${names}`
 			let split: string[] = (names as string).split(' ')
 			if (split.length === 2) {
-				_name = `${this.$prefix}${split[0]}`
+				_name = `${this._prefix}${split[0]}`
 			}
-			this.$table = _name
+			this._table = _name
 			if (!table.includes(_name)) {
 				table.push(_name)
 			}
 		} else if (isArray(names)) {
 			;(names as []).forEach((item) => {
 				//['table1 a', 'table2 b'] ['table1', 'table2']
-				let _name: string = `${this.$prefix}${item}`
+				let _name: string = `${this._prefix}${item}`
 				let split: string[] = (item as string).split(' ')
 				if (split.length === 2) {
-					_name = `${this.$prefix}${split[0]}`
-					if (this.$prefix && split[0].split(this.$prefix).length !== 2) {
+					_name = `${this._prefix}${split[0]}`
+					if (this._prefix && split[0].split(this._prefix).length !== 2) {
 						//没有表前缀
-						alias[split[1]] = this.$prefix + split[0]
+						alias[split[1]] = this._prefix + split[0]
 					}
 				}
 				if (!table.includes(_name)) {
@@ -66,8 +66,8 @@ export default class Query extends Builder {
 				}
 			})
 		}
-		this.$options['table'] = table
-		this.$options['alias'] = alias
+		this._options['table'] = table
+		this._options['alias'] = alias
 		return this
 	}
 	/**
@@ -75,10 +75,10 @@ export default class Query extends Builder {
 	 * @param names 数据表名称 含前缀
 	 */
 	public table(names: string | Array<string>): Query {
-		this.$options = {}
-		let table: string[] = this.$options['table'] || []
-		let alias: IObject = this.$options['alias'] || {}
-		this.$table = names
+		this._options = {}
+		let table: string[] = this._options['table'] || []
+		let alias: IObject = this._options['alias'] || {}
+		this._table = names
 		if (isStr(names)) {
 			let split: string[] = (names as string).split(' ')
 			let _name: string = names as string
@@ -103,8 +103,8 @@ export default class Query extends Builder {
 				}
 			})
 		}
-		this.$options['table'] = table
-		this.$options['alias'] = alias
+		this._options['table'] = table
+		this._options['alias'] = alias
 		return this
 	}
 	/**
@@ -211,12 +211,12 @@ export default class Query extends Builder {
 				}
 			})
 		}
-		let whereOption: Array<IWhereSyntaxTree> = this.$options['where'] || []
+		let whereOption: Array<IWhereSyntaxTree> = this._options['where'] || []
 		if (whereOption.length) {
-			this.$options['keyword'] = ((this.$options['keyword'] as []) || []).concat(logic as any)
+			this._options['keyword'] = ((this._options['keyword'] as []) || []).concat(logic as any)
 		}
 		whereOption.push(param)
-		this.$options['where'] = whereOption
+		this._options['where'] = whereOption
 	}
 	public whereOr(
 		field: string | IObject,
@@ -241,7 +241,7 @@ export default class Query extends Builder {
 	 * 'id, name, description as desc'
 	 */
 	public field(fields: string): Query {
-		this.$options['field'] = fields
+		this._options['field'] = fields
 		return this
 	}
 	/**
@@ -257,7 +257,7 @@ export default class Query extends Builder {
 		} else {
 			param = `${star},${end}`
 		}
-		this.$options['limit'] = param
+		this._options['limit'] = param
 		return this
 	}
 	/**
@@ -265,7 +265,7 @@ export default class Query extends Builder {
 	 * @param fields 操作的字段 id,title
 	 */
 	public group(fields: string): Query {
-		this.$options['group'] = fields
+		this._options['group'] = fields
 		return this
 	}
 	/**
@@ -273,24 +273,24 @@ export default class Query extends Builder {
 	 * @param name 设置数据表别名 可以多个数据表
 	 */
 	public alias(names: string | IObject): Query {
-		let alias: IObject = this.$options['alias'] || {}
-		if (isStr(names) && isStr(this.$table) && isStr(this.$name)) {
+		let alias: IObject = this._options['alias'] || {}
+		if (isStr(names) && isStr(this._table) && isStr(this._name)) {
 			//选择一个表的时候
-			let table = (this.$table ? this.$table : this.$prefix + this.$name) || 'NOT TABLE'
+			let table = (this._table ? this._table : this._prefix + this._name) || 'NOT TABLE'
 			alias[names as string] = table
 		} else if (isObj(names)) {
 			alias = names as IObject
 			const keys: string[] = toKeys(names)
 			keys.forEach((k) => {
-				if (this.$prefix && k.split(this.$prefix).length !== 2) {
+				if (this._prefix && k.split(this._prefix).length !== 2) {
 					//没有表前缀
-					alias[names[k]] = this.$prefix + k
+					alias[names[k]] = this._prefix + k
 				} else {
 					alias[names[k]] = k
 				}
 			})
 		}
-		this.$options['alias'] = alias
+		this._options['alias'] = alias
 		return this
 	}
 	/**
@@ -301,7 +301,7 @@ export default class Query extends Builder {
 	 * @memberof Query
 	 */
 	public distinct(isDistinct: boolean): Query {
-		this.$options['distinct'] = isDistinct
+		this._options['distinct'] = isDistinct
 		return this
 	}
 	/**
@@ -312,21 +312,21 @@ export default class Query extends Builder {
 	 */
 	public join(table: string, condition: string, joinType: sqlJoinType = 'INNER'): Query {
 		let split: string[] = table.split(' ')
-		let prefix: string[] = split[0].split(this.$prefix)
-		let alias: IObject = this.$options['alias'] || {}
-		let join: any = this.$options['join'] || {}
+		let prefix: string[] = split[0].split(this._prefix)
+		let alias: IObject = this._options['alias'] || {}
+		let join: any = this._options['join'] || {}
 		let name: string = ''
 		if (prefix.length === 1) {
 			//没有表前缀
-			name = `${this.$prefix}${split[0]}` //加上前缀
+			name = `${this._prefix}${split[0]}` //加上前缀
 		}
 		if (split[1]) {
 			//有别名才分配	之前别名配置会被后续调用的覆盖
 			alias[split[1]] = name
 		}
 		join[name] = [condition, joinType]
-		this.$options['alias'] = alias
-		this.$options['join'] = join
+		this._options['alias'] = alias
+		this._options['join'] = join
 		return this
 	}
 	/**
@@ -335,25 +335,25 @@ export default class Query extends Builder {
 	 */
 	public order(field: string): Query {
 		let fields: string[] = field.split(',')
-		let order: IObject = this.$options['order'] || {}
+		let order: IObject = this._options['order'] || {}
 		fields.forEach((v) => {
 			let key: string[] = v.split(' ')
 			order[key[0]] = key[1] || sqlOrderEnum.ASC
 		})
-		this.$options['order'] = order
+		this._options['order'] = order
 		return this
 	}
 	/**
 	 * @returns 返回只有一条结果的查询
 	 */
 	public find(): any {
-		this.$options['select'] = true
-		this.$options['limit'] = 1
+		this._options['select'] = true
+		this._options['limit'] = 1
 		// console.group(this.$options);
 		// console.log(JSON.stringify(this.$options, null, 4))
 		// this.tree(this.$options);
-		this.build(this.$options)
-		this.$options = {}
+		this.build(this._options)
+		this._options = {}
 	}
 	/**
 	 * @returns 返回多条结果的查询
@@ -361,9 +361,9 @@ export default class Query extends Builder {
 	public select(): any[] {
 		// delete this.$options["limit"];
 		// console.log(JSON.stringify(this.$options, null, 2))
-		this.$options['select'] = true
-		let where: IObject = this.build(this.$options)
-		this.$options = {}
+		this._options['select'] = true
+		let where: IObject = this.build(this._options)
+		this._options = {}
 		return []
 	}
 	/**
@@ -371,7 +371,7 @@ export default class Query extends Builder {
 	 * @param desc SQL语句中添加注释内容
 	 */
 	public comment(desc: string): Query {
-		this.$options['comment'] = desc
+		this._options['comment'] = desc
 		return this
 	}
 	/**
@@ -384,24 +384,24 @@ export default class Query extends Builder {
 	 * }
 	 */
 	public update(field: IObject) {
-		this.$options['update'] = field
+		this._options['update'] = field
 		let sql: string = this.buildUpdate(
-			this.$options['update'],
-			this.$options['where'],
-			this.$options['keyword'],
-			this.$table
+			this._options['update'],
+			this._options['where'],
+			this._options['keyword'],
+			this._table
 		)
-		this.$options = {}
+		this._options = {}
 	}
 	public delete() {
-		this.$options['delete'] = true
-		let sql: string = this.buildDelete(this.$options['where'], this.$options['keyword'], this.$table)
-		this.$options = {}
+		this._options['delete'] = true
+		let sql: string = this.buildDelete(this._options['where'], this._options['keyword'], this._table)
+		this._options = {}
 	}
 	public insert(data: IObject | IObject[]) {
-		this.$options['insert'] = data
-		let sql: string = this.buildInsert(this.$options['insert'], this.$table)
-		this.$options = {}
+		this._options['insert'] = data
+		let sql: string = this.buildInsert(this._options['insert'], this._table)
+		this._options = {}
 		console.log(sql)
 	}
 	public insertGetId() {}

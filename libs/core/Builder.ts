@@ -28,7 +28,7 @@ export default class Builder {
 	}
 	protected buildQuery($options: any): IBuildResult {
 		let where: IBuildResult = this.buildWhere($options['where'], $options['keyword'])
-		let table: string = this.buildFrom($options['table'], $options['alias'])
+		let table: string = this.buildTable($options['table'], $options['alias'])
 		let field: string = this.buildField($options['field'])
 		let join: string = this.buildJoin($options['join'], $options['alias'])
 		let group: string = this.buildGroup($options['group'])
@@ -144,12 +144,21 @@ export default class Builder {
 				while (i < operatorLength) {
 					if (operatorLength >= 2 && i === 0) sqlMap.push('(') //多个表达式用()包含
 					if (!key.includes('.')) {
-						sqlMap.push(`\`${key}\``, operatorOption[i], '?')
+						sqlMap.push(`\`${key}\``, toUpperCase(operatorOption[i]), '?')
 					} else {
-						sqlMap.push(`${key}`, operatorOption[i], '?')
+						sqlMap.push(`${key}`, toUpperCase(operatorOption[i]), '?')
 					}
-					data.push(conditionOption[i] !== '' ? conditionOption[i] : "''")
-
+					if(/IN|NOT IN/.test(toUpperCase(operatorOption[i]))) {
+						data.push(`(${conditionOption.join(',')})`)
+					}else if(/BETWEEN|NOT BETWEEN/.test(toUpperCase(operatorOption[i]))) {
+						data.push(`(${conditionOption.join(' AND ')})`)
+					}else if(/NULL|NOT NULL/.test(toUpperCase(conditionOption[i]))) {
+						sqlMap[sqlMap.length - 1] = toUpperCase(conditionOption[i])
+						sqlMap[sqlMap.length - 2] = 'IS'
+					}else {
+						data.push(conditionOption[i] !== '' ? toUpperCase(conditionOption[i]) : "''")
+					}
+					
 					if (i === operatorLength - 1 && operatorLength >= 2) sqlMap.push(')')
 
 					if (keywordOption[i]) sqlMap.push(keywordOption[i])
@@ -197,7 +206,7 @@ export default class Builder {
 	/**
 	 * @description 解析字段
 	 */
-	private buildField($fields: string): string {
+	private buildField($fields: string = ''): string {
 		if ($fields === undefined || $fields === '') {
 			return '*'
 		}
@@ -240,7 +249,7 @@ export default class Builder {
 	/**
 	 * 解析group by
 	 */
-	private buildGroup($group: string): string {
+	private buildGroup($group: string = ''): string {
 		let group: string = 'GROUP BY '
 		let map: string[] = []
 		let split: string[] = $group.split(',')
@@ -260,7 +269,7 @@ export default class Builder {
 	/**
 	 * 解析order by
 	 */
-	private buildOrder($order: string): string {
+	private buildOrder($order: string = ''): string {
 		let order: string = 'ORDER BY '
 		let map: string[] = []
 		let split: string[] = $order.split(',')

@@ -26,7 +26,6 @@ export default class Query extends Builder {
 	private _options: any = {}
 	constructor(config: IDataBase) {
 		super()
-		console.log('测试执行')
 		this._prefix = config.prefix || ''
 		Query.$connection = Db.connect(config)
 	}
@@ -117,7 +116,7 @@ export default class Query extends Builder {
 		logic: logicType,
 		field: string | IObject,
 		operator: string | number | undefined,
-		condition?: string | number | undefined
+		condition?: string | string[] | number | number[] | undefined
 	) {
 		logic = logic || 'AND'
 		const param: IWhereSyntaxTree = {
@@ -221,7 +220,7 @@ export default class Query extends Builder {
 	public whereOr(
 		field: string | IObject,
 		operator?: string | number | undefined,
-		condition?: string | number | undefined
+		condition?: string | string[] | number | number[] | undefined
 	): Query {
 		this.parseWhere('OR', field, operator, condition)
 		return this
@@ -229,7 +228,7 @@ export default class Query extends Builder {
 	public where(
 		field: string | IObject,
 		operator?: string | number | undefined,
-		condition?: string | number | undefined
+		condition?: string | string[] | number | number[] | undefined
 	): Query {
 		this.parseWhere('AND', field, operator, condition)
 		return this
@@ -362,7 +361,8 @@ export default class Query extends Builder {
 		// delete this.$options["limit"];
 		// console.log(JSON.stringify(this.$options, null, 2))
 		this._options['select'] = true
-		let where: IObject = this.build(this._options)
+		let where: IObject = this.buildQuery(this._options)
+		console.log(where)
 		this._options = {}
 		return []
 	}

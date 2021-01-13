@@ -17,6 +17,6 @@
 		"declaration": true, //生成.d.ts
 		"declarationDir": "./d.ts"
 	},
-	"include": ["libs"], // 需要编译的 ts 文件，这里设置为 src 目录下的所有文件
+	"include": ["libs"], // 需要编译的 ts 文件，这里设置为 libs 目录下的所有文件
 	"exclude": ["node_modules"] // 编译需要排除的文件目录
 }

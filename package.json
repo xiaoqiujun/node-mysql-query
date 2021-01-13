@@ -4,7 +4,7 @@
 	"description": "使用TS封装node-mysql的常用操作，与ThinkPHP的查询器类似",
 	"main": "./index.js",
 	"scripts": {
-		"dev:watch": "cross-env nodemon --watch './' -e ts --exec 'ts-node' ./src/app.ts",
+		"dev:watch": "cross-env nodemon --watch './' -e ts --exec 'ts-node' ./app.ts",
 		"test": "jest",
 		"test:watch": "jest  --watchAll",
 		"build": "tsc"

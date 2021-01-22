@@ -391,6 +391,7 @@ export default class Query extends Builder {
 			this._options['keyword'],
 			this._table
 		)
+		console.log(sql)
 		this._options = {}
 	}
 	public delete() {
@@ -400,9 +401,9 @@ export default class Query extends Builder {
 	}
 	public insert(data: IObject | IObject[]) {
 		this._options['insert'] = data
-		let sql: string = this.buildInsert(this._options['insert'], this._table)
+		let sql: IObject = this.buildInsert(this._options['insert'], this._table)
 		this._options = {}
-		console.log(sql)
+		// console.log(JSON.stringify(sql, null, 2))
 	}
 	public insertGetId() {}
 	// public insertAll(datas:IObject[]) {

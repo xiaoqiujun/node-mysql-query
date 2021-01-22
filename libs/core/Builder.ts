@@ -1,5 +1,5 @@
 import { IBuildResult, IObject } from '../typings'
-import { toKeys, toValues, isStr, isArray, typeOf, isObj, isPrimitive, toUpperCase, isDate } from '../utils'
+import { toKeys, toValues, isStr, isArray, typeOf, isObj, isPrimitive, toUpperCase, isDate, each, isRegExp, isBool, isInt } from '../utils'
 export default class Builder {
 	private sql: string = ''
 	protected _resultCode: string = ''
@@ -15,6 +15,7 @@ export default class Builder {
 			'>=,egt',
 			'like',
 			'between',
+			'not between',
 			'in',
 			'not in',
 			'null',
@@ -87,8 +88,6 @@ export default class Builder {
 		})
 		if (select) {
 			let sql: string = `SELECT ${field} FROM ${from} ${join} ${where['sql']} ${order} ${group} ${limit}`
-			console.log(sql)
-			console.log(where['params'])
 		}
 		return where
 	}
@@ -149,14 +148,19 @@ export default class Builder {
 						sqlMap.push(`${key}`, toUpperCase(operatorOption[i]), '?')
 					}
 					if(/IN|NOT IN/.test(toUpperCase(operatorOption[i]))) {
-						data.push(`(${conditionOption.join(',')})`)
+						if(sqlMap[sqlMap.length - 1] === '?') sqlMap[sqlMap.length - 1] = '(?)'
+						if(isArray(conditionOption)) data.push(conditionOption)
 					}else if(/BETWEEN|NOT BETWEEN/.test(toUpperCase(operatorOption[i]))) {
-						data.push(`(${conditionOption.join(' AND ')})`)
-					}else if(/NULL|NOT NULL/.test(toUpperCase(conditionOption[i]))) {
+						if(isArray(conditionOption) && conditionOption.length === 2) {		// between   [1,2]
+							each(conditionOption, (v, key) => {
+								data.push([v])
+							})
+						}
+					}else if(/NULL|NOT NULL/.test(toUpperCase(String(conditionOption[i])))) {
 						sqlMap[sqlMap.length - 1] = toUpperCase(conditionOption[i])
 						sqlMap[sqlMap.length - 2] = 'IS'
 					}else {
-						data.push(conditionOption[i] !== '' ? toUpperCase(conditionOption[i]) : "''")
+						data.push(conditionOption[i] !== '' ? conditionOption[i] : "''")
 					}
 					
 					if (i === operatorLength - 1 && operatorLength >= 2) sqlMap.push(')')
@@ -220,12 +224,17 @@ export default class Builder {
 		let join: string = ''
 		let table: string[] = toKeys($config)
 		let alias: string[] = toKeys($alias)
-		table.forEach((item) => {
+		each(table, (item) => {
 			let name: string = item
 			let condition: string = $config[item][0]
 			let joinType: string = $config[item][1]
 			let filter: string[] = alias.filter((key) => table.includes($alias[key]))
-			name = `${item} ${filter[0]}`
+			each(filter, (v) => {
+				if($alias[v] === item) {
+					name = `${item} ${v}`
+				}
+			})
+			// name = `${item} ${filter[0]}`
 			join += `${joinType} JOIN ${name} ON ${condition} `
 		})
 		return join
@@ -298,27 +307,34 @@ export default class Builder {
 	/**
 	 * 解析插入数据
 	 */
-	protected buildInsert($insert: any, $table: string | string[]): string {
+	protected buildInsert($insert: any, $table: string | string[]): IBuildResult {
 		if (isArray($table)) {
 			$table = $table[0]
 		}
 		if (isObj($insert)) $insert = [$insert]
-
-		let insertMap: any[] = []
+		let fields:string[] = toKeys($insert[0])
+		const dataMap:any[] = []
 		;($insert as []).forEach((item) => {
 			let keys: string[] = toKeys(item)
 			let data: any[] = []
 			keys.forEach((key) => {
-				if (isStr(item[key]) || isDate(item[key])) {
-					data.push(`'${item[key]}'`)
-				} else {
+				if(isBool(item[key]) || isInt(item[key])) {
 					data.push(item[key])
+				}else {
+					data.push(`'${item[key]}'`)
 				}
 			})
-			let insert: string = `INSERT INTO ${$table} (${keys.join(',')}) VALUES (${data.join(',')})`
-			insertMap.push(insert)
+			dataMap.push(data)
 		})
-		return insertMap.join(';')
+		let insert: string = `INSERT INTO ${$table} (${fields.join(',')}) VALUES ?`
+		console.log({
+			sql:insert,
+			params:[dataMap]
+		})
+		return {
+			sql:insert,
+			params:[dataMap]
+		}
 	}
 
 	/**

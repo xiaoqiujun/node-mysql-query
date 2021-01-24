@@ -8,6 +8,7 @@ import {
 	sqlOrderEnum,
 	sqlOrderType,
 	logicType,
+	IBuildResult,
 } from '../typings'
 import mysql, { Connection, QueryError, Pool } from 'mysql2'
 import { isStr, isArray, typeOf, isObj, toKeys, isPrimitive, toUpperCase } from '../utils'
@@ -348,11 +349,9 @@ export default class Query extends Builder {
 	public find(): any {
 		this._options['select'] = true
 		this._options['limit'] = 1
-		// console.group(this.$options);
-		// console.log(JSON.stringify(this.$options, null, 4))
-		// this.tree(this.$options);
-		this.build(this._options)
+		let res: IBuildResult = this.buildQuery(this._options)
 		this._options = {}
+		return []
 	}
 	/**
 	 * @returns 返回多条结果的查询
@@ -361,8 +360,7 @@ export default class Query extends Builder {
 		// delete this.$options["limit"];
 		// console.log(JSON.stringify(this.$options, null, 2))
 		this._options['select'] = true
-		let where: IObject = this.buildQuery(this._options)
-		console.log(where)
+		let res: IBuildResult = this.buildQuery(this._options)
 		this._options = {}
 		return []
 	}
@@ -385,36 +383,19 @@ export default class Query extends Builder {
 	 */
 	public update(field: IObject) {
 		this._options['update'] = field
-		let sql: string = this.buildUpdate(
-			this._options['update'],
-			this._options['where'],
-			this._options['keyword'],
-			this._table
-		)
-		console.log(sql)
+		let res: IBuildResult = this.buildUpdate(this._options, this._table)
 		this._options = {}
 	}
 	public delete() {
 		this._options['delete'] = true
-		let sql: string = this.buildDelete(this._options['where'], this._options['keyword'], this._table)
+		let res: IBuildResult = this.buildDelete(this._options, this._table)
 		this._options = {}
 	}
 	public insert(data: IObject | IObject[]) {
 		this._options['insert'] = data
-		let sql: IObject = this.buildInsert(this._options['insert'], this._table)
+		let res: IObject = this.buildInsert(this._options['insert'], this._table)
 		this._options = {}
-		// console.log(JSON.stringify(sql, null, 2))
+		return []
 	}
 	public insertGetId() {}
-	// public insertAll(datas:IObject[]) {
-	// 	this.$options['insert'] = datas
-	// 	let sql:string = this.buildInsert(this.$options['insert'], this.$table)
-	// 	this.$options = {}
-	// 	console.log(sql)
-	// }
-	public view() {}
-	/**
-	 * @description 创建视图
-	 */
-	public createView($config) {}
 }

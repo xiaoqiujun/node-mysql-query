@@ -1,5 +1,5 @@
 {
-	"name": "mysql-query",
+	"name": "@xqj/mysql",
 	"version": "1.0.0",
 	"description": "使用TS封装node-mysql的常用操作，与ThinkPHP的查询器类似",
 	"main": "./index.js",

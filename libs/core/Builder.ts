@@ -1,10 +1,24 @@
 import { IBuildResult, IObject } from '../typings'
-import { toKeys, toValues, isStr, isArray, typeOf, isObj, isPrimitive, toUpperCase, isDate, each, isRegExp, isBool, isInt } from '../utils'
+import {
+	toKeys,
+	toValues,
+	isStr,
+	isArray,
+	typeOf,
+	isObj,
+	isPrimitive,
+	toUpperCase,
+	isDate,
+	each,
+	isRegExp,
+	isBool,
+	isInt,
+} from '../utils'
 export default class Builder {
 	private sql: string = ''
 	protected _resultCode: string = ''
 	protected _expMap: string[] = []
-	
+
 	constructor() {
 		;[
 			'=,eq',
@@ -19,7 +33,7 @@ export default class Builder {
 			'in',
 			'not in',
 			'null',
-			'not null'
+			'not null',
 		].forEach((key) => {
 			let split = (key as string).split(',')
 			;(split || []).forEach((v) => {
@@ -53,44 +67,6 @@ export default class Builder {
 			params: where['params'],
 		}
 	}
-	protected build($options: any) {
-		console.log($options)
-		const fields = toKeys($options || {})
-		let where: IObject = {}
-		let table: string = ''
-		let field: string = '*'
-		let select: boolean | undefined = $options['select']
-		let join: string = ''
-		let alias: string = ''
-		let order: string = ''
-		let group: string = ''
-		let from: string = ''
-		let limit: string = ''
-		fields.forEach((v) => {
-			if (v === 'where') {
-				where = this.buildWhere($options['where'], $options['keyword'])
-				// 'SELECT ?? FROM `orm_user` WHERE'
-			} else if (v === 'table') {
-				table = this.buildTable($options['table'], $options['alias'])
-			} else if (v === 'field') {
-				field = this.buildField($options['field'])
-			} else if (v === 'join') {
-				join = this.buildJoin($options['join'], $options['alias'])
-			} else if (v === 'from') {
-				from = this.buildFrom($options['from'], $options['alias'])
-			} else if (v === 'group') {
-				group = this.buildGroup($options['group'])
-			} else if (v === 'order') {
-				order = this.buildOrder($options['group'])
-			} else if (v === 'limit') {
-				limit = this.buildLimit($options['limit'])
-			}
-		})
-		if (select) {
-			let sql: string = `SELECT ${field} FROM ${from} ${join} ${where['sql']} ${order} ${group} ${limit}`
-		}
-		return where
-	}
 	/**
 	 * @description 过滤SQL关键字
 	 *
@@ -121,7 +97,6 @@ export default class Builder {
 	 * 解析查询语句
 	 */
 	private buildWhere(whereOption: Array<any> = [], query: string[] = []): IBuildResult {
-		console.log('++', whereOption, query)
 		const sqlMap: string[] = ['WHERE']
 		const data: any[] = [] //参数化
 		whereOption.forEach((item, index) => {
@@ -147,22 +122,23 @@ export default class Builder {
 					} else {
 						sqlMap.push(`${key}`, toUpperCase(operatorOption[i]), '?')
 					}
-					if(/IN|NOT IN/.test(toUpperCase(operatorOption[i]))) {
-						if(sqlMap[sqlMap.length - 1] === '?') sqlMap[sqlMap.length - 1] = '(?)'
-						if(isArray(conditionOption)) data.push(conditionOption)
-					}else if(/BETWEEN|NOT BETWEEN/.test(toUpperCase(operatorOption[i]))) {
-						if(isArray(conditionOption) && conditionOption.length === 2) {		// between   [1,2]
+					if (/IN|NOT IN/.test(toUpperCase(operatorOption[i]))) {
+						if (sqlMap[sqlMap.length - 1] === '?') sqlMap[sqlMap.length - 1] = '(?)'
+						if (isArray(conditionOption)) data.push(conditionOption)
+					} else if (/BETWEEN|NOT BETWEEN/.test(toUpperCase(operatorOption[i]))) {
+						if (isArray(conditionOption) && conditionOption.length === 2) {
+							// between   [1,2]
 							each(conditionOption, (v, key) => {
 								data.push([v])
 							})
 						}
-					}else if(/NULL|NOT NULL/.test(toUpperCase(String(conditionOption[i])))) {
+					} else if (/NULL|NOT NULL/.test(toUpperCase(String(conditionOption[i])))) {
 						sqlMap[sqlMap.length - 1] = toUpperCase(conditionOption[i])
 						sqlMap[sqlMap.length - 2] = 'IS'
-					}else {
+					} else {
 						data.push(conditionOption[i] !== '' ? conditionOption[i] : "''")
 					}
-					
+
 					if (i === operatorLength - 1 && operatorLength >= 2) sqlMap.push(')')
 
 					if (keywordOption[i]) sqlMap.push(keywordOption[i])
@@ -230,7 +206,7 @@ export default class Builder {
 			let joinType: string = $config[item][1]
 			let filter: string[] = alias.filter((key) => table.includes($alias[key]))
 			each(filter, (v) => {
-				if($alias[v] === item) {
+				if ($alias[v] === item) {
 					name = `${item} ${v}`
 				}
 			})
@@ -238,21 +214,6 @@ export default class Builder {
 			join += `${joinType} JOIN ${name} ON ${condition} `
 		})
 		return join
-	}
-	/**
-	 * 解析From
-	 */
-	private buildFrom($table: string[], $alias: IObject): string {
-		let keys: string[] = toKeys($alias)
-		let from: string[] = []
-		$table.forEach((table, index) => {
-			let value: string[] = keys.filter((key) => $alias[key] === table)
-			console.log(value)
-			if (value[0]) {
-				if (!from.includes(`${table} ${value[0]}`)) from.push(`${table} ${value[0]}`)
-			}
-		})
-		return from.join(',')
 	}
 
 	/**
@@ -312,70 +273,71 @@ export default class Builder {
 			$table = $table[0]
 		}
 		if (isObj($insert)) $insert = [$insert]
-		let fields:string[] = toKeys($insert[0])
-		const dataMap:any[] = []
+		let fields: string[] = toKeys($insert[0])
+		const dataMap: any[] = []
 		;($insert as []).forEach((item) => {
 			let keys: string[] = toKeys(item)
 			let data: any[] = []
 			keys.forEach((key) => {
-				if(isBool(item[key]) || isInt(item[key])) {
+				if (isBool(item[key]) || isInt(item[key])) {
 					data.push(item[key])
-				}else {
+				} else {
 					data.push(`'${item[key]}'`)
 				}
 			})
 			dataMap.push(data)
 		})
 		let insert: string = `INSERT INTO ${$table} (${fields.join(',')}) VALUES ?`
-		console.log({
-			sql:insert,
-			params:[dataMap]
-		})
 		return {
-			sql:insert,
-			params:[dataMap]
+			sql: insert,
+			params: [dataMap],
 		}
 	}
 
 	/**
 	 * 解析更新数据
 	 */
-	protected buildUpdate(
-		$update: IObject,
-		$where: Array<any> = [],
-		$query: string[] = [],
-		$table: string | string[]
-	): string {
-		const where: IObject = this.buildWhere($where, $query)
-		if (!where['sql']) return ''
-		const keys: string[] = toKeys($update)
+	protected buildUpdate($options: any, $table: string | string[]): IBuildResult {
+		const update: IObject = $options['update']
+		const where: IObject = this.buildWhere($options['where'], $options['keyword'])
+		if (!where['sql']) return { sql: '', params: [] }
+		const keys: string[] = toKeys(update)
 		if (isArray($table)) {
 			$table = $table[0]
 		}
 		let sql: string[] = ['UPDATE', $table as string, 'SET']
-		let update: string[] = []
+		let data: any[] = []
+		let field: string[] = []
 		keys.forEach((key) => {
-			if (isStr($update[key]) || isDate($update[key])) {
-				update.push(`${key}='${$update[key]}'`)
+			field.push(`${key} = ?`)
+			if (isStr(update[key]) || isDate(update[key])) {
+				data.push(`'${update[key]}'`)
 			} else {
-				update.push(`${key}=${$update[key]}`)
+				data.push(`${update[key]}`)
 			}
 		})
-		sql.push(update.join(','), where['sql'])
-		return sql.join(' ')
+		sql = sql.concat(field.join(','), where['sql'])
+		data = data.concat(where['params'])
+		return {
+			sql: sql.join(' '),
+			params: data,
+		}
 	}
 	/**
 	 * 解析删除
 	 */
-	protected buildDelete($where: Array<any> = [], $query: string[] = [], $table: string | string[]): string {
-		const where: IObject = this.buildWhere($where, $query)
-		if (!where['sql']) return ''
+	protected buildDelete($options: any, $table: string | string[]): IBuildResult {
+		const where: IObject = this.buildWhere($options['where'], $options['keyword'])
+		if (!where['sql']) return { sql: '', params: [] }
 		if (isArray($table)) {
 			$table = $table[0]
 		}
 		let sql: string[] = ['DELETE', 'FROM', $table as string]
 
 		sql.push(where['sql'])
-		return sql.join(' ')
+		return {
+			sql: sql.join(' '),
+			params: where['params'],
+		}
 	}
 }

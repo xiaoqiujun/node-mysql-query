@@ -1,5 +1,6 @@
 import mysql, { Connection, QueryError, Pool } from 'mysql2'
 import { IDataBase, IPool, ISql, sqlExceptionEnum } from '../typings'
+import Exception from './Exception'
 export default class Db {
 	//数据库实例
 	private static _instance: Connection | Pool
@@ -11,7 +12,7 @@ export default class Db {
 				this._instance = mysql.createConnection(config)
 				this._instance.connect((err: QueryError | null) => {
 					if (err) {
-						throw new Error(sqlExceptionEnum[err?.code])
+						throw new Exception(err.message)
 					}
 				})
 			}

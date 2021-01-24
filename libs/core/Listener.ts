@@ -32,16 +32,5 @@ class Listener {
 		return this
 	}
 }
-const config: IDataBase = {
-	host: '127.0.0.1',
-	user: 'root',
-	password: 'root',
-	database: 'ormtype',
-}
-const listener: Listener = new Listener(config)
-
-class Query {
-	constructor() {}
-}
 
 //query.name('aa') => listener.emit('name', 'aa')

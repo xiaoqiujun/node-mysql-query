@@ -9,6 +9,11 @@
 		"test:watch": "jest  --watchAll",
 		"build": "tsc"
 	},
+	"files": [
+		"dist/index.js",
+		"d.ts/core/*.d.ts",
+		"d.ts/typings/*.d.ts"
+	],
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/xiaoqiujun/node-mysql-query.git"

@@ -350,6 +350,7 @@ export default class Query extends Builder {
 		this._options['select'] = true
 		this._options['limit'] = 1
 		let res: IBuildResult = this.buildQuery(this._options)
+		console.log(res)
 		this._options = {}
 		return []
 	}
@@ -361,6 +362,7 @@ export default class Query extends Builder {
 		// console.log(JSON.stringify(this.$options, null, 2))
 		this._options['select'] = true
 		let res: IBuildResult = this.buildQuery(this._options)
+		console.log(res)
 		this._options = {}
 		return []
 	}
@@ -384,16 +386,19 @@ export default class Query extends Builder {
 	public update(field: IObject) {
 		this._options['update'] = field
 		let res: IBuildResult = this.buildUpdate(this._options, this._table)
+		console.log(res)
 		this._options = {}
 	}
 	public delete() {
 		this._options['delete'] = true
 		let res: IBuildResult = this.buildDelete(this._options, this._table)
+		console.log(res)
 		this._options = {}
 	}
 	public insert(data: IObject | IObject[]) {
 		this._options['insert'] = data
 		let res: IObject = this.buildInsert(this._options['insert'], this._table)
+		console.log(res)
 		this._options = {}
 		return []
 	}

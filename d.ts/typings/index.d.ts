@@ -43,3 +43,7 @@ export declare enum sqlOrderEnum {
 }
 export declare type sqlOrderType = 'DESC' | 'ASC';
 export declare type logicType = 'AND' | 'OR';
+export interface IBuildResult {
+    sql: string;
+    params: any[];
+}

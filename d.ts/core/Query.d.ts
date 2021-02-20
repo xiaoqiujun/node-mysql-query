@@ -1,17 +1,17 @@
 import { IDataBase, IObject, sqlJoinType } from '../typings';
 import Builder from './Builder';
 export default class Query extends Builder {
-    private static connection;
-    private $table;
-    private $name;
-    private $prefix;
-    private $options;
+    private static $connection;
+    private _table;
+    private _name;
+    private _prefix;
+    private _options;
     constructor(config: IDataBase);
     /**
      *
      * @param names 数据表名称  不含前缀   ("table1") (["table1 a", "table2 b"])
      */
-    private name;
+    name(names: string | Array<string>): Query;
     /**
      *
      * @param names 数据表名称 含前缀
@@ -24,8 +24,8 @@ export default class Query extends Builder {
      * @param condition 查询的条件	 ''   1 选填
      */
     private parseWhere;
-    whereOr(field: string | IObject, operator?: string | number | undefined, condition?: string | number | undefined): Query;
-    where(field: string | IObject, operator?: string | number | undefined, condition?: string | number | undefined): Query;
+    whereOr(field: string | IObject, operator?: string | number | undefined, condition?: string | string[] | number | number[] | undefined): Query;
+    where(field: string | IObject, operator?: string | number | undefined, condition?: string | string[] | number | number[] | undefined): Query;
     /**
      *
      * @param fields 操作的字段
@@ -49,6 +49,14 @@ export default class Query extends Builder {
      * @param name 设置数据表别名 可以多个数据表
      */
     alias(names: string | IObject): Query;
+    /**
+     *
+     * @description DISTINCT 方法用于返回唯一不同的值
+     * @param {boolean} isDistinct
+     * @return {*}  {Query}
+     * @memberof Query
+     */
+    distinct(isDistinct: boolean): Query;
     /**
      *
      * @param table 选择的表
@@ -85,11 +93,6 @@ export default class Query extends Builder {
      */
     update(field: IObject): void;
     delete(): void;
-    insert(data: IObject | IObject[]): void;
+    insert(data: IObject | IObject[]): never[];
     insertGetId(): void;
-    view(): void;
-    /**
-     * @description 创建视图
-     */
-    createView($config: any): void;
 }

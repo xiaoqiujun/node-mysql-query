@@ -1,5 +1,4 @@
-import Query from '../index'
-import { IDataBase } from '../libs/typings'
+import Query from '../dist/index'
 // console.log(Query)
 // const config: IDataBase = {
 // 	host: '127.0.0.1',

@@ -1,10 +1,10 @@
-import { IObject } from '../typings';
+import { IBuildResult } from '../typings';
 export default class Builder {
     private sql;
-    protected resultCode: string;
-    protected expMap: string[];
+    protected _resultCode: string;
+    protected _expMap: string[];
     constructor();
-    protected build($options: any): IObject;
+    protected buildQuery($options: any): IBuildResult;
     /**
      * @description 过滤SQL关键字
      *
@@ -44,10 +44,6 @@ export default class Builder {
      */
     private buildJoin;
     /**
-     * 解析From
-     */
-    private buildFrom;
-    /**
      * 解析group by
      */
     private buildGroup;
@@ -62,5 +58,13 @@ export default class Builder {
     /**
      * 解析插入数据
      */
-    protected buildInsert($insert: any, $table: string | string[]): string;
+    protected buildInsert($insert: any, $table: string | string[]): IBuildResult;
+    /**
+     * 解析更新数据
+     */
+    protected buildUpdate($options: any, $table: string | string[]): IBuildResult;
+    /**
+     * 解析删除
+     */
+    protected buildDelete($options: any, $table: string | string[]): IBuildResult;
 }

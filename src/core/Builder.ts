@@ -13,7 +13,10 @@ import {
 	isRegExp,
 	isBool,
 	isInt,
+	has,
+	toLowerCase,
 } from '../utils'
+import Exception from './Exception'
 export default class Builder {
 	private sql: string = ''
 	protected _resultCode: string = ''
@@ -98,6 +101,14 @@ export default class Builder {
 	 */
 	private buildWhere(whereOption: Array<any> = [], query: string[] = []): IBuildResult {
 		const sqlMap: string[] = ['WHERE']
+		const expObj:object = {
+			'eq':'=',
+			'neq':'<>',
+			'gt':'>',
+			'lt':'<',
+			'elt':'<=',
+			'egt':'>='
+		}
 		const data: any[] = [] //参数化
 		whereOption.forEach((item, index) => {
 			let len: number = 0
@@ -116,7 +127,9 @@ export default class Builder {
 				let operatorLength: number = operatorOption.length
 				let i: number = 0
 				while (i < operatorLength) {
+					if(!this._expMap.includes(operatorOption[i]) && !this._expMap.includes(toLowerCase(operatorOption[i]))) throw new Exception(`SQL操作符错误 '${operatorOption[i]}'`)
 					if (operatorLength >= 2 && i === 0) sqlMap.push('(') //多个表达式用()包含
+					if(has(expObj, operatorOption[i]) && expObj[operatorOption[i]]) operatorOption[i] = expObj[operatorOption[i]]	//转换操作符
 					if (!key.includes('.')) {
 						sqlMap.push(`\`${key}\``, toUpperCase(operatorOption[i]), '?')
 					} else {

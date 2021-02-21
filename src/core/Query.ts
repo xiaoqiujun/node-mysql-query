@@ -23,7 +23,7 @@ export default class Query extends Builder {
 	private _name: string | Array<string> = ''
 	// 当前数据表前缀
 	private _prefix: string = ''
-	private static _isDebug:boolean = false
+	private static _isDebug: boolean = false
 	// 查询参数
 	private _options: any = {}
 	constructor(config: IDataBase) {
@@ -347,12 +347,12 @@ export default class Query extends Builder {
 	/**
 	 * @returns 返回只有一条结果的查询
 	 */
-	public async find(callback?:Function): Promise<any> {
+	public async find(callback?: Function): Promise<any> {
 		this._options['select'] = true
 		this._options['limit'] = 1
 		const query: IBuildResult = this.buildQuery(this._options)
-		if(Query.debug && typeOf(callback, 'function')) {
-			return {query:query, db:Query._connection}
+		if (Query.debug && typeOf(callback, 'function')) {
+			return { query: query, db: Query._connection }
 		}
 		const [rows] = await Query._connection.exec(query)
 		this._options = {}
@@ -363,12 +363,12 @@ export default class Query extends Builder {
 	/**
 	 * @returns 返回多条结果的查询
 	 */
-	public async select(callback?:Function): Promise<any> {
-		const fn:Function = noop
+	public async select(callback?: Function): Promise<any> {
+		const fn: Function = noop
 		this._options['select'] = true
 		const query: IBuildResult = this.buildQuery(this._options)
-		if(Query.debug && callback && typeOf(callback, 'function')) {
-			return callback({sql:query.sql, values:query.values}, Query._connection)
+		if (Query.debug && callback && typeOf(callback, 'function')) {
+			return callback({ sql: query.sql, values: query.values }, Query._connection)
 		}
 		const [rows] = await Query._connection.exec(query)
 		this._options = {}
@@ -393,11 +393,11 @@ export default class Query extends Builder {
 	 *    'status':0
 	 * }
 	 */
-	public async update(field: IObject, callback?:Function):Promise<any> {
+	public async update(field: IObject, callback?: Function): Promise<any> {
 		this._options['update'] = field
 		const query: IBuildResult = this.buildUpdate(this._options, this._table)
-		if(Query.debug && callback && typeOf(callback, 'function')) {
-			return callback({sql:query.sql, values:query.values}, Query._connection)
+		if (Query.debug && callback && typeOf(callback, 'function')) {
+			return callback({ sql: query.sql, values: query.values }, Query._connection)
 		}
 		const [rows] = await Query._connection.exec(query)
 		this._options = {}
@@ -411,11 +411,11 @@ export default class Query extends Builder {
 		console.log(res)
 		this._options = {}
 	}
-	public async insert(data: IObject | IObject[], callback?:Function):Promise<any> {
+	public async insert(data: IObject | IObject[], callback?: Function): Promise<any> {
 		this._options['insert'] = data
 		const query: IBuildResult = this.buildInsert(this._options, this._table)
-		if(Query.debug && callback && typeOf(callback, 'function')) {
-			return callback({sql:query.sql, values:query.values}, Query._connection)
+		if (Query.debug && callback && typeOf(callback, 'function')) {
+			return callback({ sql: query.sql, values: query.values }, Query._connection)
 		}
 		const [rows] = await Query._connection.exec(query)
 		console.log(rows)

@@ -52,7 +52,7 @@ export default class Builder {
 		let order: string = this.buildOrder($options['group'])
 		let limit: string = this.buildLimit($options['limit'])
 		let distinct: string = $options['distinct'] === true ? 'DISTINCT' : ''
-		let comment:string = $options['comment'] || ''
+		let comment: string = $options['comment'] || ''
 		const sql: string[] = [
 			`SELECT`,
 			`${distinct}`,
@@ -64,7 +64,7 @@ export default class Builder {
 			`${order}`,
 			`${group}`,
 			`${limit}`,
-			comment ? `##${comment}`:''
+			comment ? `##${comment}` : '',
 		].filter((item) => item !== '')
 		return {
 			sql: sql.join(' '),
@@ -72,43 +72,17 @@ export default class Builder {
 		}
 	}
 	/**
-	 * @description 过滤SQL关键字
-	 *
-	 * @private
-	 * @param {string} str
-	 * @param {(string | undefined)} [replace=undefined]
-	 * @return {*}  {(boolean | string)}
-	 * @memberof BuildSQL
-	 */
-	private filterSqlSyntax(str: string, replace: string | undefined = undefined): boolean | string {
-		const reg: RegExp = /and|exec|execute|insert|select|delete|update|count|drop|chr|mid|master|truncate|char|declare|sitename|net user|xp_cmdshell|or|like|and|exec|execute|insert|create|drop|table|from|grant|use|group_concat|column_name|information_schema.columns|table_schema|union|where|select|delete|update|order|by|count|chr|mid|master|truncate|char|declare/gi
-		return replace === undefined || replace === null ? reg.test(str) : str.replace(reg, replace)
-	}
-	/**
-	 * @description 特殊字符过滤
-	 *
-	 * @private
-	 * @param {string} str
-	 * @param {string} [replace]
-	 * @return {*}  {(boolean | string)}
-	 * @memberof BuildSQL
-	 */
-	private filterChar(str: string, replace?: string): boolean | string {
-		const reg: RegExp = /[~'\-`"？《》“”‘’；;！#￥……&*（）\{\}——+：\{\}【】!\[\]<>@#$%^&*()-+=:\s\|]/gi
-		return replace === undefined || replace === null ? reg.test(str) : str.replace(reg, replace)
-	}
-	/**
 	 * 解析查询语句
 	 */
 	private buildWhere(whereOption: Array<any> = [], query: string[] = []): IBuildResult {
 		const sqlMap: string[] = ['WHERE']
-		const expObj:object = {
-			'eq':'=',
-			'neq':'<>',
-			'gt':'>',
-			'lt':'<',
-			'elt':'<=',
-			'egt':'>='
+		const expObj: object = {
+			eq: '=',
+			neq: '<>',
+			gt: '>',
+			lt: '<',
+			elt: '<=',
+			egt: '>=',
 		}
 		const data: any[] = [] //参数化
 		whereOption.forEach((item, index) => {
@@ -128,9 +102,14 @@ export default class Builder {
 				let operatorLength: number = operatorOption.length
 				let i: number = 0
 				while (i < operatorLength) {
-					if(!this._expMap.includes(operatorOption[i]) && !this._expMap.includes(toLowerCase(operatorOption[i]))) throw new Exception(`SQL操作符错误 '${operatorOption[i]}'`)
+					if (
+						!this._expMap.includes(operatorOption[i]) &&
+						!this._expMap.includes(toLowerCase(operatorOption[i]))
+					)
+						throw new Exception(`SQL操作符错误 '${operatorOption[i]}'`)
 					if (operatorLength >= 2 && i === 0) sqlMap.push('(') //多个表达式用()包含
-					if(has(expObj, operatorOption[i]) && expObj[operatorOption[i]]) operatorOption[i] = expObj[operatorOption[i]]	//转换操作符
+					if (has(expObj, operatorOption[i]) && expObj[operatorOption[i]])
+						operatorOption[i] = expObj[operatorOption[i]] //转换操作符
 					if (!key.includes('.')) {
 						sqlMap.push(`\`${key}\``, toUpperCase(operatorOption[i]), '?')
 					} else {
@@ -140,12 +119,14 @@ export default class Builder {
 						if (sqlMap[sqlMap.length - 1] === '?') sqlMap[sqlMap.length - 1] = '(?)'
 						if (isArray(conditionOption)) data.push(conditionOption)
 					} else if (/BETWEEN|NOT BETWEEN/.test(toUpperCase(operatorOption[i]))) {
-						if(!isArray(conditionOption)) throw new Exception(`${toUpperCase(operatorOption[i])} 查询条件是数组类型`)
-						if(isArray(conditionOption) && conditionOption.length !== 2) throw new Exception(`${toUpperCase(operatorOption[i])} 数组长度只能是2个长度`)
+						if (!isArray(conditionOption))
+							throw new Exception(`${toUpperCase(operatorOption[i])} 查询条件是数组类型`)
+						if (isArray(conditionOption) && conditionOption.length !== 2)
+							throw new Exception(`${toUpperCase(operatorOption[i])} 数组长度只能是2个长度`)
 						each(conditionOption, (v, key) => {
 							data.push([v])
 						})
-						if(sqlMap[sqlMap.length - 1] === '?') sqlMap[sqlMap.length - 1] = `? AND ?`
+						if (sqlMap[sqlMap.length - 1] === '?') sqlMap[sqlMap.length - 1] = `? AND ?`
 					} else if (/NULL|NOT NULL/.test(toUpperCase(String(conditionOption[i])))) {
 						sqlMap[sqlMap.length - 1] = toUpperCase(conditionOption[i])
 						sqlMap[sqlMap.length - 2] = 'IS'
@@ -160,7 +141,7 @@ export default class Builder {
 					i++
 				}
 				len++
-				if(len < length) sqlMap.push('AND')		//多个字段
+				if (len < length) sqlMap.push('AND') //多个字段
 			}
 			if (query[index]) {
 				if (['AND', 'OR'].includes(sqlMap[sqlMap.length - 1])) {
@@ -283,12 +264,12 @@ export default class Builder {
 	/**
 	 * 解析插入数据
 	 */
-	protected buildInsert($options:IObject, $table: string | string[]): IBuildResult {
+	protected buildInsert($options: IObject, $table: string | string[]): IBuildResult {
 		if (isArray($table)) {
 			$table = $table[0]
 		}
-		let $insert:any = $options['insert']
-		let $comment:any = $options['comment']
+		let $insert: any = $options['insert']
+		let $comment: any = $options['comment']
 		if (!isArray($insert)) $insert = [$insert]
 		let fields: string[] = toKeys($insert[0])
 		const dataMap: any[] = []

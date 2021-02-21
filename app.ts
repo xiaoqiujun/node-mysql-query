@@ -6,25 +6,35 @@ const config: IDataBase = {
 	user: 'root',
 	password: 'root',
 	database: 'school',
-	prefix: 'sc_'
+	prefix: 'sc_',
 }
 Query.debug = true
 const query = new Query(config)
-let res = query.name('mood').comment("插入数据").insert([{
-	user_id:14,
-	content:'测试',
-	visible:1,
-	add_time:new Date()
-}, {
-	user_id:17,
-	content:'测试2',
-	visible:2,
-	add_time:new Date()
-}], function(query, db) {
-	console.log(query, db.format(query))
-}).then(res => {
-	console.log(res)
-})
+let res = query
+	.name('mood')
+	.comment('插入数据')
+	.insert(
+		[
+			{
+				user_id: 14,
+				content: '测试',
+				visible: 1,
+				add_time: new Date(),
+			},
+			{
+				user_id: 17,
+				content: '测试2',
+				visible: 2,
+				add_time: new Date(),
+			},
+		],
+		function (query, db) {
+			console.log(query, db.format(query))
+		}
+	)
+	.then((res) => {
+		console.log(res)
+	})
 // let res = query.name('teacher').where('username', '').select(function(query, db) {
 // 	console.log(db.format(query))
 // }).then(res => {
@@ -35,7 +45,7 @@ let res = query.name('mood').comment("插入数据").insert([{
 // 	console.log(res)
 // })
 // console.log(res)
-// query.table('sc_teacher').where('id', 'between', [1,2]).select();
+query.table('sc_teacher').where('id', 'between', [1, 2]).select()
 // query.name('teacher').where('id', '>', 1).delete()
 // query.name('config').where('id', 'null').limit(1,5).select()
 // query.name('config').where('id', 'in', [1,2,5]).limit(1,5).select()

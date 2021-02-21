@@ -132,3 +132,17 @@ export const each = (collection: any, iteratee: Function) => {
 		index++
 	}
 }
+export function thread(gen:Function) {
+	let it = gen()
+	function next(data?:any) {
+	  let res = it.next(data)
+	  if (res.done) return res.value
+	  res.value.then(function (res) {
+		next(data)
+	  }).catch(function (e) {
+		res = it.next(data)
+		next(data)
+	  })
+	}
+	next()
+}

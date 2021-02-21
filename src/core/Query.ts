@@ -11,24 +11,25 @@ import {
 	IBuildResult,
 } from '../typings'
 import mysql, { Connection, QueryError, Pool } from 'mysql2'
-import { isStr, isArray, typeOf, isObj, toKeys, isPrimitive, toUpperCase } from '../utils'
+import { isStr, isArray, typeOf, isObj, toKeys, isPrimitive, toUpperCase, noop } from '../utils'
 import Db from './Db'
 import Builder from './Builder'
 export default class Query extends Builder {
 	// // 数据库Connection对象实例
-	private static $connection: Db
+	private static _connection: Db
 	// 当前数据表名称（含前缀）
 	private _table: string | Array<string> = ''
 	// 当前数据表名称（不含前缀）
 	private _name: string | Array<string> = ''
 	// 当前数据表前缀
 	private _prefix: string = ''
+	private static _isDebug:boolean = false
 	// 查询参数
 	private _options: any = {}
 	constructor(config: IDataBase) {
 		super()
 		this._prefix = config.prefix || ''
-		Query.$connection = Db.connect(config)
+		Query._connection = Db.connect(config)
 	}
 	/**
 	 *
@@ -346,25 +347,34 @@ export default class Query extends Builder {
 	/**
 	 * @returns 返回只有一条结果的查询
 	 */
-	public find(): any {
+	public async find(callback?:Function): Promise<any> {
 		this._options['select'] = true
 		this._options['limit'] = 1
-		let res: IBuildResult = this.buildQuery(this._options)
-		console.log(res)
+		const query: IBuildResult = this.buildQuery(this._options)
+		if(Query.debug && typeOf(callback, 'function')) {
+			return {query:query, db:Query._connection}
+		}
+		const [rows] = await Query._connection.exec(query)
 		this._options = {}
-		return []
+		this._name = ''
+		this._table = ''
+		return rows || []
 	}
 	/**
 	 * @returns 返回多条结果的查询
 	 */
-	public select(): any[] {
-		// delete this.$options["limit"];
-		// console.log(JSON.stringify(this.$options, null, 2))
+	public async select(callback?:Function): Promise<any> {
+		const fn:Function = noop
 		this._options['select'] = true
-		let res: IBuildResult = this.buildQuery(this._options)
-		console.log(res)
+		const query: IBuildResult = this.buildQuery(this._options)
+		if(Query.debug && callback && typeOf(callback, 'function')) {
+			return callback({sql:query.sql, values:query.values}, Query._connection)
+		}
+		const [rows] = await Query._connection.exec(query)
 		this._options = {}
-		return []
+		this._name = ''
+		this._table = ''
+		return rows || []
 	}
 	/**
 	 *
@@ -383,11 +393,17 @@ export default class Query extends Builder {
 	 *    'status':0
 	 * }
 	 */
-	public update(field: IObject) {
+	public async update(field: IObject, callback?:Function):Promise<any> {
 		this._options['update'] = field
-		let res: IBuildResult = this.buildUpdate(this._options, this._table)
-		console.log(res)
+		const query: IBuildResult = this.buildUpdate(this._options, this._table)
+		if(Query.debug && callback && typeOf(callback, 'function')) {
+			return callback({sql:query.sql, values:query.values}, Query._connection)
+		}
+		const [rows] = await Query._connection.exec(query)
 		this._options = {}
+		this._name = ''
+		this._table = ''
+		return rows.affectedRows || 0
 	}
 	public delete() {
 		this._options['delete'] = true
@@ -395,12 +411,23 @@ export default class Query extends Builder {
 		console.log(res)
 		this._options = {}
 	}
-	public insert(data: IObject | IObject[]) {
+	public async insert(data: IObject | IObject[], callback?:Function):Promise<any> {
 		this._options['insert'] = data
-		let res: IObject = this.buildInsert(this._options['insert'], this._table)
-		console.log(res)
+		const query: IBuildResult = this.buildInsert(this._options, this._table)
+		if(Query.debug && callback && typeOf(callback, 'function')) {
+			return callback({sql:query.sql, values:query.values}, Query._connection)
+		}
+		const [rows] = await Query._connection.exec(query)
+		console.log(rows)
 		this._options = {}
 		return []
 	}
 	public insertGetId() {}
+
+	public static get debug() {
+		return this._isDebug
+	}
+	public static set debug(value: boolean) {
+		this._isDebug = value
+	}
 }

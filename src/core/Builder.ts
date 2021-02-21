@@ -6,7 +6,6 @@ import {
 	isArray,
 	typeOf,
 	isObj,
-	isPrimitive,
 	toUpperCase,
 	isDate,
 	each,
@@ -53,6 +52,7 @@ export default class Builder {
 		let order: string = this.buildOrder($options['group'])
 		let limit: string = this.buildLimit($options['limit'])
 		let distinct: string = $options['distinct'] === true ? 'DISTINCT' : ''
+		let comment:string = $options['comment'] || ''
 		const sql: string[] = [
 			`SELECT`,
 			`${distinct}`,
@@ -64,10 +64,11 @@ export default class Builder {
 			`${order}`,
 			`${group}`,
 			`${limit}`,
+			comment ? `##${comment}`:''
 		].filter((item) => item !== '')
 		return {
 			sql: sql.join(' '),
-			params: where['params'],
+			values: where.values,
 		}
 	}
 	/**
@@ -139,26 +140,27 @@ export default class Builder {
 						if (sqlMap[sqlMap.length - 1] === '?') sqlMap[sqlMap.length - 1] = '(?)'
 						if (isArray(conditionOption)) data.push(conditionOption)
 					} else if (/BETWEEN|NOT BETWEEN/.test(toUpperCase(operatorOption[i]))) {
-						if (isArray(conditionOption) && conditionOption.length === 2) {
-							// between   [1,2]
-							each(conditionOption, (v, key) => {
-								data.push([v])
-							})
-						}
+						if(!isArray(conditionOption)) throw new Exception(`${toUpperCase(operatorOption[i])} 查询条件是数组类型`)
+						if(isArray(conditionOption) && conditionOption.length !== 2) throw new Exception(`${toUpperCase(operatorOption[i])} 数组长度只能是2个长度`)
+						each(conditionOption, (v, key) => {
+							data.push([v])
+						})
+						if(sqlMap[sqlMap.length - 1] === '?') sqlMap[sqlMap.length - 1] = `? AND ?`
 					} else if (/NULL|NOT NULL/.test(toUpperCase(String(conditionOption[i])))) {
 						sqlMap[sqlMap.length - 1] = toUpperCase(conditionOption[i])
 						sqlMap[sqlMap.length - 2] = 'IS'
 					} else {
-						data.push(conditionOption[i] !== '' ? conditionOption[i] : "''")
+						data.push(conditionOption[i] !== '' ? conditionOption[i] : '')
 					}
 
 					if (i === operatorLength - 1 && operatorLength >= 2) sqlMap.push(')')
 
 					if (keywordOption[i]) sqlMap.push(keywordOption[i])
-					else if (length >= 2 && i + 1 < operatorLength) sqlMap.push('AND') //多个条件
+					else if (length >= 2 && i + 1 < operatorLength) sqlMap.push('AND') //一个字段多个条件
 					i++
 				}
 				len++
+				if(len < length) sqlMap.push('AND')		//多个字段
 			}
 			if (query[index]) {
 				if (['AND', 'OR'].includes(sqlMap[sqlMap.length - 1])) {
@@ -173,7 +175,7 @@ export default class Builder {
 		}
 		return {
 			sql: sqlMap.join(' '),
-			params: data,
+			values: data,
 		}
 	}
 	/**
@@ -281,29 +283,27 @@ export default class Builder {
 	/**
 	 * 解析插入数据
 	 */
-	protected buildInsert($insert: any, $table: string | string[]): IBuildResult {
+	protected buildInsert($options:IObject, $table: string | string[]): IBuildResult {
 		if (isArray($table)) {
 			$table = $table[0]
 		}
-		if (isObj($insert)) $insert = [$insert]
+		let $insert:any = $options['insert']
+		let $comment:any = $options['comment']
+		if (!isArray($insert)) $insert = [$insert]
 		let fields: string[] = toKeys($insert[0])
 		const dataMap: any[] = []
 		;($insert as []).forEach((item) => {
 			let keys: string[] = toKeys(item)
 			let data: any[] = []
 			keys.forEach((key) => {
-				if (isBool(item[key]) || isInt(item[key])) {
-					data.push(item[key])
-				} else {
-					data.push(`'${item[key]}'`)
-				}
+				data.push(item[key])
 			})
 			dataMap.push(data)
 		})
-		let insert: string = `INSERT INTO ${$table} (${fields.join(',')}) VALUES ?`
+		let insert: string = `INSERT INTO ${$table} (${fields.join(',')}) VALUES ?${$comment ? ` ##${$comment}` : ''}`
 		return {
 			sql: insert,
-			params: [dataMap],
+			values: [dataMap],
 		}
 	}
 
@@ -312,8 +312,8 @@ export default class Builder {
 	 */
 	protected buildUpdate($options: any, $table: string | string[]): IBuildResult {
 		const update: IObject = $options['update']
-		const where: IObject = this.buildWhere($options['where'], $options['keyword'])
-		if (!where['sql']) return { sql: '', params: [] }
+		const where: IBuildResult = this.buildWhere($options['where'], $options['keyword'])
+		if (!where['sql']) return { sql: '', values: [] }
 		const keys: string[] = toKeys(update)
 		if (isArray($table)) {
 			$table = $table[0]
@@ -321,27 +321,23 @@ export default class Builder {
 		let sql: string[] = ['UPDATE', $table as string, 'SET']
 		let data: any[] = []
 		let field: string[] = []
-		keys.forEach((key) => {
+		each(keys, (key) => {
 			field.push(`${key} = ?`)
-			if (isStr(update[key]) || isDate(update[key])) {
-				data.push(`'${update[key]}'`)
-			} else {
-				data.push(`${update[key]}`)
-			}
+			data.push(update[key])
 		})
 		sql = sql.concat(field.join(','), where['sql'])
-		data = data.concat(where['params'])
+		data = data.concat(where.values)
 		return {
 			sql: sql.join(' '),
-			params: data,
+			values: data,
 		}
 	}
 	/**
 	 * 解析删除
 	 */
 	protected buildDelete($options: any, $table: string | string[]): IBuildResult {
-		const where: IObject = this.buildWhere($options['where'], $options['keyword'])
-		if (!where['sql']) return { sql: '', params: [] }
+		const where: IBuildResult = this.buildWhere($options['where'], $options['keyword'])
+		if (!where['sql']) return { sql: '', values: [] }
 		if (isArray($table)) {
 			$table = $table[0]
 		}
@@ -350,7 +346,7 @@ export default class Builder {
 		sql.push(where['sql'])
 		return {
 			sql: sql.join(' '),
-			params: where['params'],
+			values: where.values,
 		}
 	}
 }

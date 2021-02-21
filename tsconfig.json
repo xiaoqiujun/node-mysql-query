@@ -11,12 +11,12 @@
 		//定义路径别名,即当我们通过路径引入一个模块时，可以使用别名来进行引入，这里第一个 * 设置是为了引入第三方模块; 第二个 '@/*' 则是为了直接快捷的导入 /src 下的模块。
 		"paths": {
 			"*": ["node_modules/*", "src/typings/*"],
-			"@/*": ["src/*"]
+			"@/*": ["./src/*"]
 		},
 		"esModuleInterop": true, // 模块导入方式
 		"declaration": true, //生成.d.ts
 		"declarationDir": "./d.ts"
 	},
-	"include": ["src"], // 需要编译的 ts 文件，这里设置为 libs 目录下的所有文件
+	"include": ["src/*"], // 需要编译的 ts 文件，这里设置为 libs 目录下的所有文件
 	"exclude": ["node_modules"] // 编译需要排除的文件目录
 }

@@ -1,8 +1,8 @@
 export interface IPool {
-	acquireTimeout: number //连接池超时毫秒数 默认 10000
-	waitForConnections: boolean
-	connectionLimit: number //一次允许创建的最大连接数 10
-	queueLimit: number //连接池允许排队的最大连接请求数 0
+	acquireTimeout?: number //连接池超时毫秒数 默认 10000
+	waitForConnections?: boolean
+	connectionLimit?: number //一次允许创建的最大连接数 10
+	queueLimit?: number //连接池允许排队的最大连接请求数 0
 }
 export interface IObject {
 	[key: string]: any
@@ -13,11 +13,27 @@ export interface ISql {
 	user: string
 	password: string
 }
-export interface IDataBase extends ISql {
+export interface IDataBase extends ISql,IPool {
 	charset?: string //用于连接的字符集 默认 'UTF8_GENERAL_CI'
 	prefix?: string //前缀
 	pool?: boolean | IPool //连接池
 	connectTimeout?: number //初次连接到 MySQL 服务器允许的超时毫秒数 10000
+	port?:number,
+	localAddress?:string,
+	socketPath?:string,
+	timezone?:string,
+	stringifyObjects?:boolean,
+	insecureAuth?:boolean,
+	typeCast?:boolean,
+	queryFormat?:Function,
+	supportBigNumbers?:boolean,
+	bigNumberStrings?:boolean,
+	dateStrings?:boolean,
+	debug?:boolean|object,
+	trace?:boolean,
+	multipleStatements?:boolean,
+	flags?:string,
+	ssl?:string|object
 }
 export enum sqlExceptionEnum {
 	ECONNREFUSED = '[ConnectError] SQL拒接连接',
@@ -48,5 +64,5 @@ export type sqlOrderType = 'DESC' | 'ASC'
 export type logicType = 'AND' | 'OR'
 export interface IBuildResult {
 	sql: string
-	params: any[]
+	values: any[]
 }

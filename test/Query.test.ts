@@ -7,7 +7,6 @@ import Query from '../dist/index'
 // 	password: 'root',
 // }
 // let a = new Query(config)
-console.log(Query.prototype.name('bac'))
 describe('判断是否数组', () => {
 	it('用例1:isArray([])', () => {})
 	it('用例2:isArray({})', () => {})

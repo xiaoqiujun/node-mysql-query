@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"target": "ES6", // 指定 EECMAScript 的目标版本, 这里我们采用 es6
 		"module": "commonjs", // 指定编译生成哪个模块的系统代码，考虑到兼容性，这里我们设置成 commonjs
-		"outDir": "./dist", // 编译输出目录，即 .ts 文件编译成 .js 文件后的输出目录。这里设置为根目录下的 /dist 目录
+		"outDir": "./", // 编译输出目录，即 .ts 文件编译成 .js 文件后的输出目录。这里设置为根目录下的 /dist 目录
 		"strict": true, // 严格模式
 		"noImplicitAny": false, // 在表达式和声明上有隐含的 any类型时报错。设为 false 避免当类型推论为 any 时报错
 		"moduleResolution": "node", // 决定如何处理模块。设置为 node
@@ -15,7 +15,6 @@
 		},
 		"esModuleInterop": true, // 模块导入方式
 		"declaration": true, //生成.d.ts
-		"declarationDir": "./d.ts"
 	},
 	"include": ["src/*"], // 需要编译的 ts 文件，这里设置为 libs 目录下的所有文件
 	"exclude": ["node_modules"] // 编译需要排除的文件目录

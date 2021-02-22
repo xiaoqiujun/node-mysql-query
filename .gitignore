@@ -81,7 +81,12 @@ jspm_packages/
 # Nuxt.js build / generate output
 .nuxt
 dist
-
+d.ts
+core
+typings
+utils
+index.d.ts
+index.js
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and *not* Next.js
@@ -102,3 +107,6 @@ dist
 
 # TernJS port file
 .tern-port
+.tag
+.rar
+.zip

@@ -10,9 +10,11 @@
 		"build": "tsc"
 	},
 	"files": [
-		"dist/index.js",
-		"d.ts/core/*.d.ts",
-		"d.ts/typings/*.d.ts"
+		"index.js",
+		"core/*",
+		"typings/*",
+		"utils/*",
+		"index.d.ts"
 	],
 	"repository": {
 		"type": "git",

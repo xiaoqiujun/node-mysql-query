@@ -1,8 +1,8 @@
 export interface IPool {
-    acquireTimeout: number;
-    waitForConnections: boolean;
-    connectionLimit: number;
-    queueLimit: number;
+    acquireTimeout?: number;
+    waitForConnections?: boolean;
+    connectionLimit?: number;
+    queueLimit?: number;
 }
 export interface IObject {
     [key: string]: any;
@@ -13,11 +13,27 @@ export interface ISql {
     user: string;
     password: string;
 }
-export interface IDataBase extends ISql {
+export interface IDataBase extends ISql, IPool {
     charset?: string;
     prefix?: string;
     pool?: boolean | IPool;
     connectTimeout?: number;
+    port?: number;
+    localAddress?: string;
+    socketPath?: string;
+    timezone?: string;
+    stringifyObjects?: boolean;
+    insecureAuth?: boolean;
+    typeCast?: boolean;
+    queryFormat?: Function;
+    supportBigNumbers?: boolean;
+    bigNumberStrings?: boolean;
+    dateStrings?: boolean;
+    debug?: boolean | object;
+    trace?: boolean;
+    multipleStatements?: boolean;
+    flags?: string;
+    ssl?: string | object;
 }
 export declare enum sqlExceptionEnum {
     ECONNREFUSED = "[ConnectError] SQL\u62D2\u63A5\u8FDE\u63A5",
@@ -45,5 +61,5 @@ export declare type sqlOrderType = 'DESC' | 'ASC';
 export declare type logicType = 'AND' | 'OR';
 export interface IBuildResult {
     sql: string;
-    params: any[];
+    values: any[];
 }

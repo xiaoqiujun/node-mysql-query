@@ -20,4 +20,5 @@ export declare const toUpperCase: (str: string) => string;
 export declare const toLowerCase: (str: string) => string;
 export declare const noop: () => void;
 export declare const each: (collection: any, iteratee: Function) => void;
+export declare function thread(gen: Function): void;
 export {};

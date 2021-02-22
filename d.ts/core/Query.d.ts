@@ -1,10 +1,11 @@
 import { IDataBase, IObject, sqlJoinType } from '../typings';
 import Builder from './Builder';
 export default class Query extends Builder {
-    private static $connection;
+    private static _connection;
     private _table;
     private _name;
     private _prefix;
+    private static _isDebug;
     private _options;
     constructor(config: IDataBase);
     /**
@@ -72,11 +73,11 @@ export default class Query extends Builder {
     /**
      * @returns 返回只有一条结果的查询
      */
-    find(): any;
+    find(callback?: Function): Promise<any>;
     /**
      * @returns 返回多条结果的查询
      */
-    select(): any[];
+    select(callback?: Function): Promise<any>;
     /**
      *
      * @param desc SQL语句中添加注释内容
@@ -91,8 +92,15 @@ export default class Query extends Builder {
      *    'status':0
      * }
      */
-    update(field: IObject): void;
-    delete(): void;
-    insert(data: IObject | IObject[]): never[];
-    insertGetId(): void;
+    update(field: IObject, callback?: Function): Promise<any>;
+    delete(callback?: Function): Promise<any>;
+    insert(data: IObject | IObject[], callback?: Function): Promise<any>;
+    insertGetId(data: IObject | IObject[], callback?: Function): Promise<any>;
+    query(sql: string): Promise<any>;
+    exec(sql: string): Promise<any>;
+    format(sql: string, values: any[]): string;
+    config(key: string): any;
+    private clear;
+    static get debug(): boolean;
+    static set debug(value: boolean);
 }

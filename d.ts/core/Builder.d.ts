@@ -1,30 +1,13 @@
-import { IBuildResult } from '../typings';
+import { IBuildResult, IObject } from '../typings';
 export default class Builder {
     private sql;
     protected _resultCode: string;
     protected _expMap: string[];
     constructor();
+    /**
+     * 解析查询
+     */
     protected buildQuery($options: any): IBuildResult;
-    /**
-     * @description 过滤SQL关键字
-     *
-     * @private
-     * @param {string} str
-     * @param {(string | undefined)} [replace=undefined]
-     * @return {*}  {(boolean | string)}
-     * @memberof BuildSQL
-     */
-    private filterSqlSyntax;
-    /**
-     * @description 特殊字符过滤
-     *
-     * @private
-     * @param {string} str
-     * @param {string} [replace]
-     * @return {*}  {(boolean | string)}
-     * @memberof BuildSQL
-     */
-    private filterChar;
     /**
      * 解析查询语句
      */
@@ -58,7 +41,7 @@ export default class Builder {
     /**
      * 解析插入数据
      */
-    protected buildInsert($insert: any, $table: string | string[]): IBuildResult;
+    protected buildInsert($options: IObject, $table: string | string[]): IBuildResult;
     /**
      * 解析更新数据
      */

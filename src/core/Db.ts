@@ -1,4 +1,4 @@
-import { thread } from '../utils'
+import { isStr, thread } from '../utils'
 import mysql, { Connection, QueryError, Pool, PoolConnection } from 'mysql2'
 import { IBuildResult, IDataBase, IPool, ISql, sqlExceptionEnum } from '../typings'
 import Exception from './Exception'
@@ -36,14 +36,14 @@ export default class Db {
 	//数据库实例
 	private static _instance: Db | null
 	private static configMap: Map<any, any> = new Map()
-	private static _connection:Connection | Pool | null
-	constructor(private readonly connection:Connection| Pool) {
+	private static _connection:any
+	constructor(private readonly connection:any) {
 		Db._connection = connection
 	}
 	public static connect(config: IDataBase): Db {
 		const pool: boolean | IPool | undefined = config.pool
 		const $config = Object.create(null)
-		let connection:Connection | Pool
+		let connection:any
 		Object.keys(config).forEach((key:any) => {
 			if (!Db.configMap.has(key)) Db.configMap.set(key, config[key]);
 			if([].concat(CONNECTION_OPTIONS, pool === true ? POOL_OPTIONs : []).includes(key as never)) {
@@ -53,27 +53,16 @@ export default class Db {
 		if (!this._instance) {
 			if (pool === true) {
 				connection = mysql.createPool($config)
-				connection.getConnection((err:NodeJS.ErrnoException, conn:PoolConnection) => {
-					if(err) throw new Exception(err.message)
-				})
 			} else {
 				connection = mysql.createConnection($config)
-				connection.connect((err: QueryError | null) => {
-					if (err) {
-						throw new Exception(err.message)
-					}
-				})
 			}
 			this._instance = new Db(connection)
 		}
 		return this._instance
 	}
 	public static clear() {
-		if (this._instance && this._connection) {
-			this._connection.destroy()
-			this._instance = null
-			this._connection = null
-		}
+		this._instance = null
+		this._connection = null
 	}
 	public getConfig(key: string): any {
 		if (Db.configMap.has(key)) return Db.configMap.get(key);
@@ -87,27 +76,43 @@ export default class Db {
 		}
 		return ''
 	}
-	public async query(options:IBuildResult):Promise<any[]> {
+	public async query(options:IBuildResult|string):Promise<any[]> {
 		if(!Db._instance && !Db._connection) throw new Exception('Db实例不存在')
 		if(Db._connection) {
-			const promiseConn = Db._connection.promise()
 			try {
-				const res = await promiseConn.query(options.sql, options.values)
+				if(!this.getConfig('pool')) {
+					Db._connection.connect(() => {})
+					const promiseConn:Connection = Db._connection.promise()
+					const res:any = isStr(options) ? await promiseConn.query(options as string) : await promiseConn.query((options as IBuildResult).sql, (options as IBuildResult).values)
+					promiseConn.end()
+					return res
+				}
+				const promisePool:PoolConnection = await Db._connection.promise().getConnection()
+				const res:any = isStr(options) ? await promisePool.query(options as string) : await promisePool.query((options as IBuildResult).sql, (options as IBuildResult).values)
+				promisePool.release()
 				return res
-			}catch (err:any) {
+			}catch (err) {
 				throw err
 			}
 		}
 		return []
 	}
-	public async exec(options:IBuildResult):Promise<any[]> {
+	public async exec(options:IBuildResult|string):Promise<any[]> {
 		if(!Db._instance && !Db._connection) throw new Exception('Db实例不存在')
 		if(Db._connection) {
-			const promiseConn = Db._connection.promise()
 			try {
-				const res = await promiseConn.execute(options.sql, options.values)
+				if(!this.getConfig('pool')) {
+					Db._connection.connect(() => {})
+					const promiseConn:Connection = Db._connection.promise()
+					const res:any = isStr(options) ? await promiseConn.execute(options as string) : await promiseConn.execute((options as IBuildResult).sql, (options as IBuildResult).values)
+					promiseConn.end()
+					return res
+				}
+				const promisePool:PoolConnection = await Db._connection.promise().getConnection()
+				const res:any = isStr(options) ? await promisePool.execute(options as string) : await promisePool.execute((options as IBuildResult).sql, (options as IBuildResult).values)
+				promisePool.release()
 				return res
-			}catch (err:any) {
+			}catch (err) {
 				throw err
 			}
 		}

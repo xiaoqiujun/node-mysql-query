@@ -43,6 +43,9 @@ export default class Builder {
 			})
 		})
 	}
+	/**
+	 * 解析查询
+	 */
 	protected buildQuery($options: any): IBuildResult {
 		let where: IBuildResult = this.buildWhere($options['where'], $options['keyword'])
 		let table: string = this.buildTable($options['table'], $options['alias'])

@@ -354,10 +354,8 @@ export default class Query extends Builder {
 		if (Query.debug && typeOf(callback, 'function')) {
 			return { query: query, db: Query._connection }
 		}
-		const [rows] = await Query._connection.exec(query)
-		this._options = {}
-		this._name = ''
-		this._table = ''
+		const [rows] = await Query._connection.query(query)
+		this.clear()
 		return rows || []
 	}
 	/**
@@ -370,10 +368,8 @@ export default class Query extends Builder {
 		if (Query.debug && callback && typeOf(callback, 'function')) {
 			return callback({ sql: query.sql, values: query.values }, Query._connection)
 		}
-		const [rows] = await Query._connection.exec(query)
-		this._options = {}
-		this._name = ''
-		this._table = ''
+		const [rows] = await Query._connection.query(query)
+		this.clear()
 		return rows || []
 	}
 	/**
@@ -399,17 +395,19 @@ export default class Query extends Builder {
 		if (Query.debug && callback && typeOf(callback, 'function')) {
 			return callback({ sql: query.sql, values: query.values }, Query._connection)
 		}
-		const [rows] = await Query._connection.exec(query)
-		this._options = {}
-		this._name = ''
-		this._table = ''
+		const [rows] = await Query._connection.query(query)
+		this.clear()
 		return rows.affectedRows || 0
 	}
-	public delete() {
+	public async delete(callback?: Function): Promise<any> {
 		this._options['delete'] = true
-		let res: IBuildResult = this.buildDelete(this._options, this._table)
-		console.log(res)
-		this._options = {}
+		const query: IBuildResult = this.buildDelete(this._options, this._table)
+		if (Query.debug && callback && typeOf(callback, 'function')) {
+			return callback({ sql: query.sql, values: query.values }, Query._connection)
+		}
+		const [rows] = await Query._connection.query(query)
+		this.clear()
+		return rows.affectedRows || 0
 	}
 	public async insert(data: IObject | IObject[], callback?: Function): Promise<any> {
 		this._options['insert'] = data
@@ -417,13 +415,41 @@ export default class Query extends Builder {
 		if (Query.debug && callback && typeOf(callback, 'function')) {
 			return callback({ sql: query.sql, values: query.values }, Query._connection)
 		}
-		const [rows] = await Query._connection.exec(query)
-		console.log(rows)
-		this._options = {}
-		return []
+		const [rows] = await Query._connection.query(query)
+		this.clear()
+		return {affectedRows:rows.affectedRows || 0, insertId:rows.insertId || null}
 	}
-	public insertGetId() {}
-
+	public async insertGetId(data: IObject | IObject[], callback?: Function): Promise<any>{
+		if(isArray(data)) data = data[0]	//insertGetId 只取一个
+		try {
+			const res:any = await this.insert(data, callback)
+			return res.insertId
+		}catch (err) {
+			throw err
+		}
+	}
+	public async query(sql:string): Promise<any> {
+		const [rows, fields] = await Query._connection.query(sql)
+		return {rows, fields}
+	}
+	public async exec(sql:string):Promise<any> {
+		const [rows, fields] = await Query._connection.exec(sql)
+		return {rows, fields}
+	}
+	public format(sql:string, values:any[]):string {
+		return Query._connection.format({
+			sql,
+			values
+		})
+	}
+	public config(key:string):any {
+		return Query._connection.getConfig(key)
+	}
+	private clear() {
+		this._options = {}
+		this._name = ''
+		this._table = ''
+	}
 	public static get debug() {
 		return this._isDebug
 	}

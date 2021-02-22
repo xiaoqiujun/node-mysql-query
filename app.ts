@@ -1,4 +1,4 @@
-import Query from './dist'
+import Query from './index'
 import { IDataBase } from './src/typings'
 
 const config: IDataBase = {
@@ -7,29 +7,27 @@ const config: IDataBase = {
 	password: 'root',
 	database: 'school',
 	prefix: 'sc_',
-	pool:true
+	pool: true,
 }
 Query.debug = true
 const query = new Query(config)
 let res = query
 	.name('mood')
-	.comment("插入数据")
-	.insert(
-		[
-			{
-				user_id: 365,
-				content: '1 or 1 --',
-				visible: 1,
-				add_time: new Date(),
-			},
-			{
-				user_id: 78,
-				content: '测试2',
-				visible: 2,
-				add_time: new Date(),
-			},
-		]
-	)
+	.comment('插入数据')
+	.insert([
+		{
+			user_id: 365,
+			content: '1 or 1 --',
+			visible: 1,
+			add_time: new Date(),
+		},
+		{
+			user_id: 78,
+			content: '测试2',
+			visible: 2,
+			add_time: new Date(),
+		},
+	])
 	.then((res) => {
 		console.log(res)
 	})
@@ -43,9 +41,13 @@ let res = query
 // 	console.log(res)
 // })
 // console.log(res)
-query.table('sc_teacher').where('id', 'between', [1, 2]).select().then(res => {
-	console.log(res)
-})
+query
+	.table('sc_teacher')
+	.where('id', 'between', [1, 2])
+	.select()
+	.then((res) => {
+		console.log(res)
+	})
 // query.table('sc_mood').where('id', 'between', [127, 128]).delete()
 // query.name('teacher').where('id', '>', 1).delete()
 // query.name('config').where('id', 'null').limit(1,5).select()

@@ -46,6 +46,7 @@ export interface IWhereSyntaxTree {
 	condition: IObject
 	keyword: IObject
 	query: string[]
+	table?:string
 }
 //sql join枚举
 export enum sqlJoinTypeEnum {

@@ -127,6 +127,7 @@ export default class Query extends Builder {
 			condition: {},
 			keyword: {},
 			query: [],
+			table:isStr(this._table) ? (this._table as string) : isArray(this._table) ? (this._table[0] as string) : ''
 		}
 		if (typeOf(field, 'string')) {
 			//字符串形式  where("id","<>", 1) where("id",1) where("table.id = table.id")
@@ -250,7 +251,7 @@ export default class Query extends Builder {
 	 * @param star 开始
 	 * @param end 结尾
 	 */
-	public limit(star: string | number, end: number | undefined = undefined): Query {
+	public limit(star: string | number, end?: number | undefined): Query {
 		let split: any[] = ('' + star).split(',')
 		let param: any
 		if (end === undefined) {
@@ -432,7 +433,14 @@ export default class Query extends Builder {
 		const [rows, fields] = await Query._connection.query(sql)
 		return {rows, fields}
 	}
-	public async exec(sql:string):Promise<any> {
+	public async exec(sql:string, values?:any[]):Promise<any> {
+		if(values !== undefined) {
+			const [rows, fields] = await Query._connection.exec({
+				sql,
+				values
+			})
+			return {rows, fields}
+		}
 		const [rows, fields] = await Query._connection.exec(sql)
 		return {rows, fields}
 	}

@@ -47,12 +47,12 @@ export default class Builder {
 	 * 解析查询
 	 */
 	protected buildQuery($options: any): IBuildResult {
-		let where: IBuildResult = this.buildWhere($options['where'], $options['keyword'])
+		let where: IBuildResult = this.buildWhere($options['where'], $options['keyword'], $options['alias'])
 		let table: string = this.buildTable($options['table'], $options['alias'])
 		let field: string = this.buildField($options['field'])
 		let join: string = this.buildJoin($options['join'], $options['alias'])
 		let group: string = this.buildGroup($options['group'])
-		let order: string = this.buildOrder($options['group'])
+		let order: string = this.buildOrder($options['order'])
 		let limit: string = this.buildLimit($options['limit'])
 		let distinct: string = $options['distinct'] === true ? 'DISTINCT' : ''
 		let comment: string = $options['comment'] || ''
@@ -77,7 +77,7 @@ export default class Builder {
 	/**
 	 * 解析查询语句
 	 */
-	private buildWhere(whereOption: Array<any> = [], query: string[] = []): IBuildResult {
+	private buildWhere(whereOption: Array<any> = [], query: string[] = [], alias?:IObject): IBuildResult {
 		const sqlMap: string[] = ['WHERE']
 		const expObj: object = {
 			eq: '=',
@@ -87,8 +87,10 @@ export default class Builder {
 			elt: '<=',
 			egt: '>=',
 		}
+		const aliasTable:string[] = toValues(alias || {})
 		const data: any[] = [] //参数化
 		whereOption.forEach((item, index) => {
+			if(!item['table']) throw new Exception("没有选择表")
 			let len: number = 0
 			let field: string[] = item['field'] //获取字段
 			let length: number = field.length
@@ -114,7 +116,13 @@ export default class Builder {
 					if (has(expObj, operatorOption[i]) && expObj[operatorOption[i]])
 						operatorOption[i] = expObj[operatorOption[i]] //转换操作符
 					if (!key.includes('.')) {
-						sqlMap.push(`\`${key}\``, toUpperCase(operatorOption[i]), '?')
+						let index:number = aliasTable.indexOf(item['table'])
+						if(index !== -1) {
+							let keys:string[] = toKeys(alias || {})
+							keys[index] && sqlMap.push(`${keys[index]}.${key}`, toUpperCase(operatorOption[i]), '?')
+						}else {
+							sqlMap.push(`\`${key}\``, toUpperCase(operatorOption[i]), '?')
+						}
 					} else {
 						sqlMap.push(`${key}`, toUpperCase(operatorOption[i]), '?')
 					}
@@ -158,7 +166,7 @@ export default class Builder {
 			sqlMap.splice(sqlMap.length - 1, 1)
 		}
 		return {
-			sql: sqlMap.join(' '),
+			sql: sqlMap.length === 1 ? '' : sqlMap.join(' '),
 			values: data,
 		}
 	}
@@ -210,7 +218,7 @@ export default class Builder {
 				}
 			})
 			// name = `${item} ${filter[0]}`
-			join += `${joinType} JOIN ${name} ON ${condition} `
+			join += `${joinType} JOIN ${name} ON ${condition}`
 		})
 		return join
 	}
@@ -238,11 +246,11 @@ export default class Builder {
 	/**
 	 * 解析order by
 	 */
-	private buildOrder($order: string = ''): string {
+	private buildOrder($order: IObject): string {
 		let order: string = 'ORDER BY '
 		let map: string[] = []
-		let split: string[] = $order.split(',')
-		split.forEach((item: string) => {
+		let keys: string[] = toKeys($order)
+		keys.forEach((item: string) => {
 			let key: string[] = item.split('.')
 			let name: string = ''
 			if (key.length === 2) {
@@ -250,7 +258,7 @@ export default class Builder {
 			} else {
 				name = `\`${key[0]}\``
 			}
-			if (!map.includes(name)) map.push(name)
+			if (!map.includes(name)) map.push(`${name} ${$order[item]}`)
 		})
 		order += `${map.join(',')}`
 		return !$order ? '' : order

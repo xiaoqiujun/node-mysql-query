@@ -12,7 +12,7 @@ node-mysql 的常用操作封装，与 ThinkPHP 的查询器类似
 ## Install
 
 ```sh
-npm install @xqj/mysql
+npm install --save mysql2 @xqj/mysql
 ```
 
 

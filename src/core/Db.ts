@@ -1,4 +1,4 @@
-import { isStr, thread } from '../utils'
+import { isArray, isStr, thread } from '../utils'
 import mysql, { Connection, QueryError, Pool, PoolConnection } from 'mysql2'
 import { IBuildResult, IDataBase, IPool, ISql, sqlExceptionEnum } from '../typings'
 import Exception from './Exception'
@@ -117,5 +117,29 @@ export default class Db {
 			}
 		}
 		return []
+	}
+
+	public async transaction(options:IBuildResult[]|string[]):Promise<boolean> {
+		if(!Db._instance && !Db._connection) throw new Exception('Db实例不存在')
+		if(Db._connection) {
+			try {
+				const promisePool = await Db._connection.getConnection()
+				await promisePool.beginTransaction()
+				if(!isArray(options)) throw new Exception(`事务参数是数组类型`)
+				for(let i:number = 0; i < options.length; i++) {
+					let item:any = options[i]
+					const [rows]:any = isStr(item) ? await promisePool.query(item) : await promisePool.query(item.sql, item.values)
+					if(rows.length > 0) {
+						continue
+					}
+				}
+				await promisePool.commit()
+				promisePool.release()
+				return true
+			}catch (err) {
+				throw err
+			}
+		}
+		return false
 	}
 }

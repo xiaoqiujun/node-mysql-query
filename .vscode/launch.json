@@ -9,7 +9,7 @@
 			"request": "launch",
 			"name": "启动程序",
 			"skipFiles": ["<node_internals>/**"],
-			"args": ["${workspaceFolder}/src/main.ts"],
+			"args": ["${workspaceFolder}/src/app.ts"],
 			"runtimeArgs": ["--nolazy", "-r", "ts-node/register", "-r", "tsconfig-paths/register"],
 			"sourceMaps": true,
 			"cwd": "${workspaceRoot}",

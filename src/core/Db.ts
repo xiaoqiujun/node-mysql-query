@@ -1,5 +1,5 @@
-import { isArray, isStr, thread } from '../utils'
-import mysql, { Connection, QueryError, Pool, PoolConnection } from 'mysql2'
+import { each, has, isArray, isStr, thread } from '../utils'
+import mysql, { Pool, PoolConnection } from 'mysql2'
 import { IBuildResult, IDataBase, IPool, ISql, sqlExceptionEnum } from '../typings'
 import Exception from './Exception'
 const CONNECTION_OPTIONS: any = [
@@ -26,34 +26,34 @@ const CONNECTION_OPTIONS: any = [
 	'flags',
 	'ssl',
 ]
-const POOL_OPTIONs: any = ['acquireTimeout', 'waitForConnections', 'connectionLimit', 'queueLimit']
+const POOL_OPTIONS: any = ['acquireTimeout', 'waitForConnections', 'connectionLimit', 'queueLimit']
 export default class Db {
 	//数据库实例
 	private static _instance: Db = new Db()
-	private static configMap: Map<any, any> = new Map()
+	private static config: object = Object.create(null)
 	private static _connection: any
 	public static connect(config: IDataBase): Db {
-		const pool: boolean | IPool | undefined = config.pool
 		const $config = Object.create(null)
-		let connection: any
 		Object.keys(config).forEach((key: any) => {
-			if (!Db.configMap.has(key)) Db.configMap.set(key, config[key])
-			if ([].concat(CONNECTION_OPTIONS, pool === true ? POOL_OPTIONs : []).includes(key as never)) {
+			if ([].concat(CONNECTION_OPTIONS, POOL_OPTIONS).includes(key as never)) {
 				$config[key] = config[key]
 			}
 		})
-		if (pool === true) {
-			this._connection = mysql.createPool($config)
-		} else {
-			this._connection = mysql.createConnection($config)
-		}
+		this.config = config
+		this._connection = mysql.createPool($config)
 		return this._instance
 	}
-	public static clear() {
+	private reConnect() {
+		if(!Db._connection._closed) return
+		Db.end()
+		Db._connection = mysql.createPool(Db.config)
+	}
+	public static end() {
+		this._connection.end()
 		this._connection = null
 	}
 	public getConfig(key: string): any {
-		if (Db.configMap.has(key)) return Db.configMap.get(key)
+		if(has(Db.config, key)) return Db.config[key]
 		return null
 	}
 	public format(options: IBuildResult): string {
@@ -67,17 +67,10 @@ export default class Db {
 	public async query(options: IBuildResult | string): Promise<any[]> {
 		if (!Db._instance && !Db._connection) throw new Exception('Db实例不存在')
 		if (Db._connection) {
+			this.reConnect()
 			try {
-				if (!this.getConfig('pool')) {
-					Db._connection.connect(() => {})
-					const promiseConn: Connection = Db._connection.promise()
-					const res: any = isStr(options)
-						? await promiseConn.query(options as string)
-						: await promiseConn.query((options as IBuildResult).sql, (options as IBuildResult).values)
-					promiseConn.end()
-					return res
-				}
-				const promisePool: PoolConnection = await Db._connection.promise().getConnection()
+				const promisePool = await Db._connection.promise().getConnection()
+				
 				const res: any = isStr(options)
 					? await promisePool.query(options as string)
 					: await promisePool.query((options as IBuildResult).sql, (options as IBuildResult).values)
@@ -93,16 +86,7 @@ export default class Db {
 		if (!Db._instance && !Db._connection) throw new Exception('Db实例不存在')
 		if (Db._connection) {
 			try {
-				if (!this.getConfig('pool')) {
-					Db._connection.connect(() => {})
-					const promiseConn: Connection = Db._connection.promise()
-					const res: any = isStr(options)
-						? await promiseConn.execute(options as string)
-						: await promiseConn.execute((options as IBuildResult).sql, (options as IBuildResult).values)
-					promiseConn.end()
-					return res
-				}
-				const promisePool: PoolConnection = await Db._connection.promise().getConnection()
+				const promisePool = await Db._connection.promise().getConnection()
 				const res: any = isStr(options)
 					? await promisePool.execute(options as string)
 					: await promisePool.execute((options as IBuildResult).sql, (options as IBuildResult).values)

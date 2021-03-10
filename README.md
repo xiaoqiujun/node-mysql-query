@@ -29,7 +29,7 @@ database| 数据库名称 | `string` | 必填项
 prefix| 数据库的前缀 | `string` | 可选
 pool|是否创建连接池,如果创建,则无法创建单个连接|`boolean` | 可选
 
-其他配置See [mysqljs/mysql](https://github.com/mysqljs/mysql#connection-options)
+其他配置 [mysqljs/mysql](https://github.com/mysqljs/mysql#connection-options)
 
 ### 创建连接
 ```js

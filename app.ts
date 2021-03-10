@@ -5,14 +5,16 @@ interface IDataBase {
 	database: string
 	user: string
 	password: string
-	prefix: string
+	prefix: string,
+	queueLimit:number
 }
 const config: IDataBase = {
 	host: '127.0.0.1',
-	database: 'typeorm',
+	database: 'ormtype',
 	user: 'root',
 	password: 'root',
 	prefix: 'orm_',
+	queueLimit:5
 }
 const db = Db.connect(config)
 db.name('teacher')
@@ -29,4 +31,4 @@ setTimeout(() => {
 		.then((res) => {
 			console.log(res)
 		})
-}, 3000)
+}, 5000)

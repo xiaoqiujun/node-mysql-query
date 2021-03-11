@@ -16,7 +16,6 @@ export interface ISql {
 export interface IDataBase extends ISql,IPool {
 	charset?: string //用于连接的字符集 默认 'UTF8_GENERAL_CI'
 	prefix?: string //前缀
-	pool?: boolean | IPool //连接池
 	connectTimeout?: number //初次连接到 MySQL 服务器允许的超时毫秒数 10000
 	port?:number,
 	localAddress?:string,

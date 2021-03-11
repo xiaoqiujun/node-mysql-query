@@ -39,12 +39,12 @@ export default class Db {
 				$config[key] = config[key]
 			}
 		})
-		this.config = config
+		this.config = $config
 		this._connection = mysql.createPool($config)
 		return this._instance
 	}
 	private reConnect() {
-		if(!Db._connection._closed) return
+		if(!Db._connection._closed) return 
 		Db.end()
 		Db._connection = mysql.createPool(Db.config)
 	}
@@ -85,6 +85,7 @@ export default class Db {
 	public async exec(options: IBuildResult | string): Promise<any[]> {
 		if (!Db._instance && !Db._connection) throw new Exception('Db实例不存在')
 		if (Db._connection) {
+			this.reConnect()
 			try {
 				const promisePool = await Db._connection.promise().getConnection()
 				const res: any = isStr(options)

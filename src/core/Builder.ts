@@ -24,9 +24,9 @@ export default class Builder {
 	constructor() {
 		;[
 			'=,eq',
-			'<>,neq',
 			'>,gt',
 			'<,lt',
+			'<>,neq',
 			'<=,elt',
 			'>=,egt',
 			'like',

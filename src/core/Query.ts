@@ -117,7 +117,7 @@ export default class Query extends Builder {
 	private parseWhere(
 		logic: logicType,
 		field: string | IObject,
-		operator: string | number | undefined,
+		operator?: string | number | undefined,
 		condition?: string | string[] | number | number[] | undefined
 	) {
 		logic = logic || 'AND'

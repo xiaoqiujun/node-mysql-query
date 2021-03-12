@@ -156,6 +156,80 @@ db.name('teacher').where('username', '').select(function(query, db) {
 	//SELECT * FROM `sc_teacher` WHERE `username` = ''
 	```
 	
+- #### where (field:string|object, operator?:string|number, condition?:string|string[]|number|number[])
+	- field 查询的字段 也可以是一段查询表达式 如: 'id is not null'
+	- operator 查询表达式(不区分大小写)
+
+		|表达式|说明|
+		|-----|----|
+		|`=` or `eq`|等于|
+		|`>` or `gt`|大于|
+		|`<` or `lt`|小于|
+		|`>=` or `egt`|大于等于|
+		|`<=` or `elt`|小于等于|
+		|`<>` or `neq`|不等于|
+		|`like`|模糊查询|
+		|`between`|区间查询|
+		|`not between`|不在区间查询|
+		|`in`|in查询|
+		|`not in`|不在in查询|
+		|`null`|null查询|
+		|`not null`|不是null查询|
+		表达式还不支持时间, 后续迭代
+	- condition 查询条件
+	```js
+	//以下的查询都是等价的
+	db.name('teacher').where('username = \'\'')
+	db.name('teacher').where('username', '')
+	db.name('teacher').where('username', '=', '')
+	db.name('teacher').where({
+		username:[''] // or username:''	默认是=表达式
+	})
+	db.name('teacher').where({
+		username:['=', '']
+	})
+
+	//一个字段有多个条件情况下
+	//like
+	db.name('teacher').where('username', 'like', '%张')
+	db.name('teacher').where({
+		username:['like','%张']
+	})
+	//多个like查询
+	db.name('teacher').where({
+		username:[
+			['like', '%张'],
+			'or', // 'and'
+			['like', '张%']
+		]
+	})
+	db.name('teacher').where({
+		id:[
+			['>', 1],
+			['<', 10]
+		]
+	})
+	//等价于下面这个例子
+	db.name('teacher').where({
+		id:[
+			['>',1],
+			'and',
+			['<', 10]
+		]
+	})
+
+	//between查询
+	db.name('teacher').where('id', 'between', [1,4])	//条件为数组
+	db.name('teacher').where('id', 'not between', [1,4])
+
+	//in查询
+	db.name('teacher').where('id', 'in', [1,2,3])
+	db.name('teacher').where('id', 'not in', [1,2,3])
+
+	//null查询
+	db.name('teacher').where('id', 'null')
+	db.name('teacher').where('id', 'not null')
+	```
 - #### alias (names:string | object )
 	```js
 	db.table('sc_teacher').alias('a').where('username', '').select()

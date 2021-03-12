@@ -4,19 +4,21 @@ node-mysql 的常用操作封装，与 ThinkPHP 的查询器类似
 功能还在优化
 
 
-- [Install](!install)
+- [Install](#install)
 - [Introduction](#introduction)
+- [Jest](#jest)
 
 
 
 ## Install
 
 ```sh
-npm install --save mysql2 @xqj/mysql
+npm install --save @xqj/mysql
 ```
 
 
 ## Introduction
+
 
 ### 配置(CONFIG)
 参数 | 说明 | 类型 | 默认值
@@ -33,7 +35,7 @@ prefix| 数据库的前缀 | `string` | 可选
 ### 创建连接
 ```js
 const {default:Db} = require('@xqj/mysql')	//or import Db from '@xqj/mysql'
-const db = new Db.connect({
+const db = Db.connect({
 	host: 'localhost',
 	password: 'root',
 	user: 'root',
@@ -45,7 +47,7 @@ const db = new Db.connect({
 ### 基本的查询
 ```js
 const {default:Db} = require('@xqj/mysql')	//or import Db from '@xqj/mysql'
-const db = new Db.connect({
+const db = Db.connect({
 	host: 'localhost',
 	password: 'root',
 	user: 'root',
@@ -120,7 +122,7 @@ db.name('teacher').where('username', '').select().then(res => {
 ```js
 const {default:Db} = require('@xqj/mysql')	//or import Db from '@xqj/mysql'
 Db.debug = true
-const db = new Db.connect({
+const db = Db.connect({
 	host: 'localhost',
 	password: 'root',
 	user: 'root',
@@ -216,4 +218,36 @@ db.name('teacher').where('username', '').select(function(query, db) {
 	```js
 	db.config('prefix')
 	//return 'sc_'
+	```
+
+
+
+## Jest
+
+```sh
+npm run test
+```
+- ### 例子
+	```js
+	const config = {
+		host: '127.0.0.1',
+		database: 'ormtype',
+		user: 'root',
+		password: 'root',
+		prefix: 'sc_'
+	}
+	Db.debug = true
+	let db = Db.connect(config)
+	describe('where查询 => table:teacher,condition:id = 1', () => {
+		it('用例1:', () => {
+			let data = {
+				sql: 'SELECT * FROM `sc_teacher` WHERE `id` = ?',
+				values:[1]
+			} 
+			const callback = (query) => {
+				expect(query).toEqual(data)
+			}
+			db.name('teacher').where('id',1).select(callback)
+		})
+	})
 	```

@@ -1,4 +1,4 @@
-import Query from '../src/core/Query'
+import Db from '../src'
 interface IDataBase {
 	host: string,
 	database: string,
@@ -13,8 +13,8 @@ const config: IDataBase = {
 	password: 'root',
 	prefix: 'sc_',
 }
-Query.debug = true
-let query = new Query(config)
+Db.debug = true
+let query = Db.connect(config)
 describe('where查询 => table:teacher,condition:id = 1', () => {
 	it('用例1:', () => {
 		let data:object = {

@@ -176,7 +176,7 @@ db.name('teacher').where('username', '').select(function(query, db) {
 		|`null`|null查询|
 		|`not null`|不是null查询|
 		表达式还不支持时间, 后续迭代
-	- condition 查询条件
+	- condition 查询的条件
 	```js
 	//以下的查询都是等价的
 	db.name('teacher').where('username = \'\'')

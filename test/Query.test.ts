@@ -19,7 +19,7 @@ describe('where查询 => table:teacher,condition:id = 1', () => {
 	it('用例1:', () => {
 		let data:object = {
 			sql: 'SELECT * FROM `sc_teacher` WHERE `id` = ?',
-			values:[1]
+			values:[2]
 		} 
 		const callback = (query) => {
 			console.log(query)

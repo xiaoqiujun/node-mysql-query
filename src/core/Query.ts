@@ -352,12 +352,13 @@ export default class Query extends Builder {
 		this._options['select'] = true
 		this._options['limit'] = 1
 		const query: IBuildResult = this.buildQuery(this._options)
+		if(Query.debug)
 		if (Query.debug && typeOf(callback, 'function')) {
 			return { query: query, db: Query._connection }
 		}
 		const [rows] = await Query._connection.query(query)
 		this.clear()
-		return rows || []
+		return rows[0] || null
 	}
 	/**
 	 * @returns 返回多条结果的查询

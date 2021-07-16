@@ -219,7 +219,7 @@ export default class Builder {
 			})
 			// name = `${item} ${filter[0]}`
 			join += `${joinType} JOIN ${name} ON ${condition}`
-			if(i > 0 && i < table.length) join += " "
+			if(table.length > 1 && i === 0) join += " "
 		})
 		return join
 	}

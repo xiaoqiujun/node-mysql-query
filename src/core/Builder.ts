@@ -207,7 +207,7 @@ export default class Builder {
 		let join: string = ''
 		let table: string[] = toKeys($config)
 		let alias: string[] = toKeys($alias)
-		each(table, (item) => {
+		each(table, (item, i) => {
 			let name: string = item
 			let condition: string = $config[item][0]
 			let joinType: string = $config[item][1]
@@ -219,6 +219,7 @@ export default class Builder {
 			})
 			// name = `${item} ${filter[0]}`
 			join += `${joinType} JOIN ${name} ON ${condition}`
+			if(i > 0 && i < table.length) join += " "
 		})
 		return join
 	}

@@ -1,20 +1,16 @@
 import {
-	IDataBase,
-	ISql,
+	SqlOptions,
 	IObject,
-	IWhereSyntaxTree,
-	sqlJoinTypeEnum,
-	sqlJoinType,
-	sqlOrderEnum,
-	sqlOrderType,
-	logicType,
+	WhereSyntax,
+	SQLJoin,
+	Logic,
 	IBuildResult,
 } from '../typings'
 import mysql, { Connection, QueryError, Pool } from 'mysql2'
 import { isStr, isArray, typeOf, isObj, toKeys, isPrimitive, toUpperCase, noop } from '../utils'
 import Db from './Db'
 import Builder from './Builder'
-export default class Query extends Builder {
+export class Query extends Builder {
 	// // 数据库Connection对象实例
 	private static _connection: Db
 	// 当前数据表名称（含前缀）
@@ -26,7 +22,7 @@ export default class Query extends Builder {
 	private static _isDebug: boolean = false
 	// 查询参数
 	private _options: any = {}
-	constructor(config: IDataBase) {
+	constructor(config: SqlOptions) {
 		super()
 		this._prefix = config.prefix || ''
 		Query._connection = Db.connect(config)
@@ -115,13 +111,13 @@ export default class Query extends Builder {
 	 * @param condition 查询的条件	 ''   1 选填
 	 */
 	private parseWhere(
-		logic: logicType,
-		field: string | IObject,
-		operator?: string | number | undefined,
-		condition?: string | string[] | number | number[] | undefined
+		logic: Logic,
+		field: string | Record<string, any>,
+		operator?: string | number,
+		condition?: string | string[] | number | number[]
 	) {
 		logic = logic || 'AND'
-		const param: IWhereSyntaxTree = {
+		const param: WhereSyntax = {
 			field: [],
 			operator: {},
 			condition: {},
@@ -129,24 +125,19 @@ export default class Query extends Builder {
 			query: [],
 			table:isStr(this._table) ? (this._table as string) : isArray(this._table) ? (this._table[0] as string) : ''
 		}
-		if (typeOf(field, 'string')) {
+		if (typeof field === 'string') {
 			//字符串形式  where("id","<>", 1) where("id",1) where("table.id = table.id")
 			if (operator === undefined && condition === undefined) {
 				const query: string[] = param.query || []
-				if (query.length) {
-					query.push(logic, field as string)
-				} else {
-					query.push(field as string)
-				}
+				if (query.length) query.push(logic, field)
+				else query.push(field)
 				param.query = query
 			} else {
-				param.field.push(field as string) //把字段保存起来
-				param.operator[field as string] = (param.operator[field as string] || []).concat(
-					condition === undefined ? '=' : operator
-				)
-				param.condition[field as string] = (param.condition[field as string] || []).concat(
-					condition === undefined ? operator : condition
-				)
+				param.field.push(field) //把字段保存起来
+				let _operator:string = condition === undefined ? '=' : operator as string
+				let _connection = condition === undefined ? operator : condition
+				param.operator[field] = (param.operator[field] || []).concat(_operator)
+				param.condition[field] = (param.condition[field] || []).concat(_connection)
 			}
 		} else if (isObj(field)) {
 			//复杂形式 where({id:['>', 1]})
@@ -213,7 +204,7 @@ export default class Query extends Builder {
 				}
 			})
 		}
-		let whereOption: Array<IWhereSyntaxTree> = this._options['where'] || []
+		let whereOption: Array<WhereSyntax> = this._options['where'] || []
 		if (whereOption.length) {
 			this._options['keyword'] = ((this._options['keyword'] as []) || []).concat(logic as any)
 		}
@@ -312,7 +303,7 @@ export default class Query extends Builder {
 	 * @param condition 表达式
 	 * @param joinType 关联类型
 	 */
-	public join(table: string, condition: string, joinType: sqlJoinType = 'INNER'): Query {
+	public join(table: string, condition: string, joinType: SQLJoin = 'INNER'): Query {
 		let split: string[] = table.split(' ')
 		let prefix: string[] = split[0].split(this._prefix)
 		let alias: IObject = this._options['alias'] || {}
@@ -340,7 +331,7 @@ export default class Query extends Builder {
 		let order: IObject = this._options['order'] || {}
 		fields.forEach((v) => {
 			let key: string[] = v.split(' ')
-			order[key[0]] = key[1] || sqlOrderEnum.ASC
+			order[key[0]] = key[1] || "ASC"
 		})
 		this._options['order'] = order
 		return this
@@ -366,6 +357,8 @@ export default class Query extends Builder {
 	public async select(callback?: Function): Promise<any> {
 		const fn: Function = noop
 		this._options['select'] = true
+		console.log(this._options)
+		console.log(this._options['where'][0])
 		const query: IBuildResult = this.buildQuery(this._options)
 		if (Query.debug && callback && typeOf(callback, 'function')) {
 			return callback({ sql: query.sql, values: query.values }, Query._connection)

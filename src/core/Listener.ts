@@ -1,5 +1,5 @@
 import { each, toKeys } from '../utils'
-import { IDataBase } from '../typings'
+import { SqlOptions } from '../typings'
 import Exception from './Exception'
 
 /**
@@ -8,7 +8,7 @@ import Exception from './Exception'
 class Listener {
 	protected _eventMap: any = {}
 	protected _config: any = {}
-	constructor(config: IDataBase) {
+	constructor(config: SqlOptions) {
 		this._config = config
 	}
 	public listen(name: string, fn: Function): Listener {

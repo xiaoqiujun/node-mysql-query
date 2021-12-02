@@ -1,9 +1,10 @@
-import Query from './core/Query';
-import { IDataBase } from './typings';
-
+import {Query} from './core/Query';
+import { SqlOptions } from './typings';
+export {SqlOptions, SQLJoin, SQLOrder} from './typings'
+export {Query} from './core/Query'
 class Db  {
 	private static _instance:Query
-	public static connect(config:IDataBase) {
+	public static connect(config:SqlOptions) {
 		if(!this._instance) {
 			this._instance = new Query(config);
 		}

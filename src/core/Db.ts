@@ -1,6 +1,6 @@
 import { each, has, isArray, isStr, thread } from '../utils'
 import mysql, { Pool, PoolConnection } from 'mysql2'
-import { IBuildResult, IDataBase, IPool, ISql, sqlExceptionEnum } from '../typings'
+import { IBuildResult, SqlOptions, IPool, ISql } from '../typings'
 import Exception from './Exception'
 const CONNECTION_OPTIONS: any = [
 	'host',
@@ -32,7 +32,7 @@ export default class Db {
 	private static _instance: Db = new Db()
 	private static config: object = Object.create(null)
 	private static _connection: any
-	public static connect(config: IDataBase): Db {
+	public static connect(config: SqlOptions): Db {
 		const $config = Object.create(null)
 		Object.keys(config).forEach((key: any) => {
 			if ([].concat(CONNECTION_OPTIONS, POOL_OPTIONS).includes(key as never)) {

@@ -1,4 +1,5 @@
 import Db from './src';
+
 interface IDataBase {
 	host: string,
 	database: string,
@@ -11,13 +12,15 @@ const config: IDataBase = {
 	database: 'ormtype',
 	user: 'root',
 	password: 'root',
-	prefix: 'sc_',
+	prefix: 'orm_',
 }
-// Db.debug = true
+Db.debug = true
 
 const db = Db.connect(config)
 
-db.name('teacher').where('id',1).select(function(query, db) {
+db.name('teacher').alias({
+	'orm_teacher': 'a'
+}).where('id',1).select(function(query, db) {
 	console.log(query)
 })
 

@@ -1,3 +1,5 @@
+export type Data = Record<string | number | symbol, unknown>
+
 export interface IPool {
 	acquireTimeout?: number //连接池超时毫秒数 默认 10000
 	waitForConnections?: boolean
@@ -13,7 +15,8 @@ export interface ISql {
 	user: string
 	password: string
 }
-export interface IDataBase extends ISql,IPool {
+
+export interface SqlOptions extends ISql,IPool {
 	charset?: string //用于连接的字符集 默认 'UTF8_GENERAL_CI'
 	prefix?: string //前缀
 	connectTimeout?: number //初次连接到 MySQL 服务器允许的超时毫秒数 10000
@@ -34,35 +37,31 @@ export interface IDataBase extends ISql,IPool {
 	flags?:string,
 	ssl?:string|object
 }
-export enum sqlExceptionEnum {
-	ECONNREFUSED = '[ConnectError] SQL拒接连接',
-	ER_PARSE_ERROR = '[SyntaxError] SQL语法解析错误',
-}
+
 //查询语法树
-export interface IWhereSyntaxTree {
+export interface WhereSyntax {
 	field: string[]
-	operator: IObject
-	condition: IObject
-	keyword: IObject
+	operator: Record<string, string[]>
+	condition: Record<string, any>
+	keyword: Record<string, string[]>
 	query: string[]
 	table?:string
 }
-//sql join枚举
-export enum sqlJoinTypeEnum {
-	INNER = 'INNER',
-	LEFT = 'LEFT',
-	RIGHT = 'RIGHT',
-	FULL = 'FULL',
-}
-export type sqlJoinType = 'INNER' | 'LEFT' | 'RIGHT' | 'FULL'
-//sql 排序枚举
-export enum sqlOrderEnum {
-	DESC = 'DESC', //指定列按降序排列 从大到小
-	ASC = 'ASC', //指定列按升序排列 从小到大
-}
-export type sqlOrderType = 'DESC' | 'ASC'
-export type logicType = 'AND' | 'OR'
+
+export type SQLJoin = 'INNER' | 'LEFT' | 'RIGHT' | 'FULL'
+//sql 排序
+// DESC 指定列按降序排列 从大到小
+//ASC 指定列按升序排列 从小到大
+export type SQLOrder = 'DESC' | 'ASC'
+export type Logic = 'AND' | 'OR'
 export interface IBuildResult {
 	sql: string
 	values: any[]
+}
+
+export interface QueryOptions {
+	table:string | string[],
+	alias:Record<string, string>,
+	where:WhereSyntax | WhereSyntax[],
+	select:boolean
 }

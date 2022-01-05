@@ -1,6 +1,6 @@
 {
 	"name": "@xqj/mysql",
-	"version": "1.2.12",
+	"version": "1.2.13",
 	"description": "使用TS封装node-mysql的常用操作，与ThinkPHP的查询器类似",
 	"main": "./dist/index.js",
 	"scripts": {

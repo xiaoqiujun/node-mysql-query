@@ -357,8 +357,6 @@ export class Query extends Builder {
 	public async select(callback?: Function): Promise<any> {
 		const fn: Function = noop
 		this._options['select'] = true
-		console.log(this._options)
-		console.log(this._options['where'][0])
 		const query: IBuildResult = this.buildQuery(this._options)
 		if (Query.debug && callback && typeOf(callback, 'function')) {
 			return callback({ sql: query.sql, values: query.values }, Query._connection)

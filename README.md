@@ -1,3 +1,4 @@
+# 项目已经转移到 [linsql](https://github.com/xiaoqiujun/linsql)
 # node-mysql-query
 
 node-mysql 的常用操作封装，与 ThinkPHP 的查询器类似
